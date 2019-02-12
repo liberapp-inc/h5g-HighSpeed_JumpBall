@@ -1,211 +1,192 @@
-//////////////////////////////////////////////////////////////////////////////////////
-//
-//  Copyright (c) 2014-present, Egret Technology.
-//  All rights reserved.
-//  Redistribution and use in source and binary forms, with or without
-//  modification, are permitted provided that the following conditions are met:
-//
-//     * Redistributions of source code must retain the above copyright
-//       notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above copyright
-//       notice, this list of conditions and the following disclaimer in the
-//       documentation and/or other materials provided with the distribution.
-//     * Neither the name of the Egret nor the
-//       names of its contributors may be used to endorse or promote products
-//       derived from this software without specific prior written permission.
-//
-//  THIS SOFTWARE IS PROVIDED BY EGRET AND CONTRIBUTORS "AS IS" AND ANY EXPRESS
-//  OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
-//  OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
-//  IN NO EVENT SHALL EGRET AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
-//  INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;LOSS OF USE, DATA,
-//  OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
-//  LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
-//  NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-//  EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-//
-//////////////////////////////////////////////////////////////////////////////////////
-
 class Main extends eui.UILayer {
 
+    static timeStamp : number;
 
-    protected createChildren(): void {
-        super.createChildren();
-
-        egret.lifecycle.addLifecycleListener((context) => {
-            // custom lifecycle plugin
-        })
-
-        egret.lifecycle.onPause = () => {
-            egret.ticker.pause();
-        }
-
-        egret.lifecycle.onResume = () => {
-            egret.ticker.resume();
-        }
-
-        //inject the custom material parser
-        //注入自定义的素材解析器
-        let assetAdapter = new AssetAdapter();
-        egret.registerImplementation("eui.IAssetAdapter", assetAdapter);
-        egret.registerImplementation("eui.IThemeAdapter", new ThemeAdapter());
-
-
-        this.runGame().catch(e => {
-            console.log(e);
-        })
+    public constructor() {
+        super();
+        this.once(egret.Event.ADDED_TO_STAGE, this.addToStage, this);
+    }
+ 
+    private addToStage() {
+        GameObject.initial( this.stage );
+        Game.init();
+        egret.startTick(this.tickLoop, this);
+       
     }
 
-    private async runGame() {
-        await this.loadResource()
-        this.createGameScene();
-        const result = await RES.getResAsync("description_json")
-        this.startAnimation(result);
-        await platform.login();
-        const userInfo = await platform.getUserInfo();
-        console.log(userInfo);
-
+    tickLoop(timeStamp:number = Main.timeStamp):boolean{
+        GameObject.update();
+        CreateWorld.worldBegin(timeStamp);
+        return false;
     }
-
-    private async loadResource() {
-        try {
-            const loadingView = new LoadingUI();
-            this.stage.addChild(loadingView);
-            await RES.loadConfig("resource/default.res.json", "resource/");
-            await this.loadTheme();
-            await RES.loadGroup("preload", 0, loadingView);
-            this.stage.removeChild(loadingView);
-        }
-        catch (e) {
-            console.error(e);
-        }
-    }
-
-    private loadTheme() {
-        return new Promise((resolve, reject) => {
-            // load skin theme configuration file, you can manually modify the file. And replace the default skin.
-            //加载皮肤主题配置文件,可以手动修改这个文件。替换默认皮肤。
-            let theme = new eui.Theme("resource/default.thm.json", this.stage);
-            theme.addEventListener(eui.UIEvent.COMPLETE, () => {
-                resolve();
-            }, this);
-
-        })
-    }
-
-    private textfield: egret.TextField;
-    /**
-     * 创建场景界面
-     * Create scene interface
-     */
-    protected createGameScene(): void {
-        let sky = this.createBitmapByName("bg_jpg");
-        this.addChild(sky);
-        let stageW = this.stage.stageWidth;
-        let stageH = this.stage.stageHeight;
-        sky.width = stageW;
-        sky.height = stageH;
-
-        let topMask = new egret.Shape();
-        topMask.graphics.beginFill(0x000000, 0.5);
-        topMask.graphics.drawRect(0, 0, stageW, 172);
-        topMask.graphics.endFill();
-        topMask.y = 33;
-        this.addChild(topMask);
-
-        let icon: egret.Bitmap = this.createBitmapByName("egret_icon_png");
-        this.addChild(icon);
-        icon.x = 26;
-        icon.y = 33;
-
-        let line = new egret.Shape();
-        line.graphics.lineStyle(2, 0xffffff);
-        line.graphics.moveTo(0, 0);
-        line.graphics.lineTo(0, 117);
-        line.graphics.endFill();
-        line.x = 172;
-        line.y = 61;
-        this.addChild(line);
-
-
-        let colorLabel = new egret.TextField();
-        colorLabel.textColor = 0xffffff;
-        colorLabel.width = stageW - 172;
-        colorLabel.textAlign = "center";
-        colorLabel.text = "Hello Egret";
-        colorLabel.size = 24;
-        colorLabel.x = 172;
-        colorLabel.y = 80;
-        this.addChild(colorLabel);
-
-        let textfield = new egret.TextField();
-        this.addChild(textfield);
-        textfield.alpha = 0;
-        textfield.width = stageW - 172;
-        textfield.textAlign = egret.HorizontalAlign.CENTER;
-        textfield.size = 24;
-        textfield.textColor = 0xffffff;
-        textfield.x = 172;
-        textfield.y = 135;
-        this.textfield = textfield;
-
-        let button = new eui.Button();
-        button.label = "Click!";
-        button.horizontalCenter = 0;
-        button.verticalCenter = 0;
-        this.addChild(button);
-        button.addEventListener(egret.TouchEvent.TOUCH_TAP, this.onButtonClick, this);
-    }
-    /**
-     * 根据name关键字创建一个Bitmap对象。name属性请参考resources/resource.json配置文件的内容。
-     * Create a Bitmap object according to name keyword.As for the property of name please refer to the configuration file of resources/resource.json.
-     */
-    private createBitmapByName(name: string): egret.Bitmap {
-        let result = new egret.Bitmap();
-        let texture: egret.Texture = RES.getRes(name);
-        result.texture = texture;
-        return result;
-    }
-    /**
-     * 描述文件加载成功，开始播放动画
-     * Description file loading is successful, start to play the animation
-     */
-    private startAnimation(result: Array<any>): void {
-        let parser = new egret.HtmlTextParser();
-
-        let textflowArr = result.map(text => parser.parse(text));
-        let textfield = this.textfield;
-        let count = -1;
-        let change = () => {
-            count++;
-            if (count >= textflowArr.length) {
-                count = 0;
-            }
-            let textFlow = textflowArr[count];
-
-            // 切换描述内容
-            // Switch to described content
-            textfield.textFlow = textFlow;
-            let tw = egret.Tween.get(textfield);
-            tw.to({ "alpha": 1 }, 200);
-            tw.wait(2000);
-            tw.to({ "alpha": 0 }, 200);
-            tw.call(change, this);
-        };
-
-        change();
-    }
-
-    /**
-     * 点击按钮
-     * Click the button
-     */
-    private onButtonClick(e: egret.TouchEvent) {
-        let panel = new eui.Panel();
-        panel.title = "Title";
-        panel.horizontalCenter = 0;
-        panel.verticalCenter = 0;
-        this.addChild(panel);
-    }
+    
 }
+
+class Game{
+
+    public static height: number;
+    public static width: number;
+
+    static init() {
+        this.height = egret.MainContext.instance.stage.stageHeight;
+        this.width  = egret.MainContext.instance.stage.stageWidth;
+        
+        /* new メソッドを記入*/
+        new CreateWorld();
+        new Ball();
+    }
+
+
+}
+
+abstract class GameObject {
+    
+    protected shape:egret.Shape = null;
+    protected body : p2.Body = null;
+    protected bodyShape : p2.Circle | p2.Box = null;
+    protected world : p2.World = null;
+    
+    public static objects: GameObject[];
+    public static display: egret.DisplayObjectContainer;
+    //public static transit:()=>void;
+
+    constructor() {
+        GameObject.objects.push(this);
+    }
+
+
+    static initial(displayObjectContainer: egret.DisplayObjectContainer){
+        GameObject.objects = [];
+        GameObject.display = displayObjectContainer;
+    }
+
+    abstract updateContent() : void;
+
+    static update(){
+        GameObject.objects.forEach(obj => obj.updateContent());
+
+    }
+
+}
+
+class CreateWorld extends GameObject{
+    static world : p2.World = null;
+    constructor(){
+        super();
+        this.createWorld();
+        this.createWall();
+        //egret.startTick(CreateWorld.worldBegin, this);
+    }
+
+    createWorld(){
+        CreateWorld.world = new p2.World();
+        CreateWorld.world.sleepMode = p2.World.BODY_SLEEPING;
+        CreateWorld.world.gravity = [0, 9.8];
+
+    }
+    createWall(){
+        //見えない壁や地面の生成
+        for(let i = 0; i < 3; i++){
+            const planeBody: p2.Body[] = [];
+            planeBody[i] = new p2.Body({fixedRotation:true ,type:p2.Body.STATIC});
+            const planeShape: p2.Plane[] = [];
+            planeShape[i] = new p2.Plane();
+            
+            switch(i){
+                //地面
+                case 0:
+                    planeBody[i].position=  [0, Game.height];
+                    planeBody[i].angle = Math.PI;//rad表記
+                break;
+
+                //右の壁
+                case 1:
+                    planeBody[i].position=  [Game.width, Game.height];
+                    planeBody[i].angle = Math.PI/2;//rad表記
+                break;
+
+                //左の壁
+                case 2:
+                    planeBody[i].position=  [0, Game.height];
+                    planeBody[i].angle = 3* Math.PI/2;//rad表記
+                break;
+
+            }
+
+            planeBody[i].addShape(planeShape[i]);
+            CreateWorld.world.addBody(planeBody[i]);
+        }
+    }
+    
+    updateContent(){
+
+
+    }
+
+    static worldBegin(dt : number) :boolean{
+       
+        CreateWorld.world.step(1/60, dt/1000, 10);
+        return false;
+    }
+
+    
+
+}
+
+class Ball extends GameObject{
+
+    static I:Ball = null;   // singleton instance
+
+
+    radius:number = 20;
+
+
+    constructor() {
+        super();
+
+        Ball.I = this;
+        this.setBody(Game.width/2 *0.5, 0, this.radius);
+        this.setShape(Game.width/2 *0.5,0, this.radius);
+
+    }
+
+    setBody(x: number, y:number, radius: number){
+
+        this.body = new p2.Body({mass : 1, position:[x,y]});
+        this.bodyShape = new p2.Circle({radius : radius});
+        this.body.addShape(this.bodyShape);
+        CreateWorld.world.addBody(this.body);
+        
+    }
+
+    setShape(x: number, y:number, radius: number){
+        if( this.shape ){
+            GameObject.display.removeChild(this.shape);        
+        }
+
+        this.shape = new egret.Shape();
+        this.shape.graphics.beginFill(0xff0000);
+        this.shape.graphics.drawCircle(this.body.position[0], this.body.position[1], radius);
+        this.shape.graphics.endFill();
+        GameObject.display.addChild(this.shape);
+        this.shape.x = x;
+        this.shape.y = y;
+        
+    }
+
+    updateDrowShape(){
+        this.shape.x = this.body.position[0];
+        this.shape.y = this.body.position[1];
+        GameObject.display.addChild(this.shape);
+    }
+
+
+    updateContent(){
+        this.updateDrowShape();
+        
+    }
+
+
+
+}
+

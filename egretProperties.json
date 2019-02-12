@@ -29,6 +29,10 @@
     },
     {
       "name": "promise"
+    },
+    {
+      "name": "physics",
+      "path": "../physics"
     }
   ]
 }
