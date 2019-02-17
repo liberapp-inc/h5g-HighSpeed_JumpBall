@@ -11,10 +11,18 @@ r.prototype = e.prototype, t.prototype = new r();
 //衝突判定用の列挙
 var GraphicShape;
 (function (GraphicShape) {
-    GraphicShape[GraphicShape["CIECLE"] = Math.pow(2, 0)] = "CIECLE";
-    GraphicShape[GraphicShape["BOX"] = Math.pow(2, 1)] = "BOX";
-    GraphicShape[GraphicShape["PLANE"] = Math.pow(2, 2)] = "PLANE";
+    GraphicShape[GraphicShape["NONE"] = Math.pow(2, 0)] = "NONE";
+    GraphicShape[GraphicShape["CIECLE"] = Math.pow(2, 1)] = "CIECLE";
+    GraphicShape[GraphicShape["BOX"] = Math.pow(2, 2)] = "BOX";
+    GraphicShape[GraphicShape["PLANE"] = Math.pow(2, 3)] = "PLANE";
 })(GraphicShape || (GraphicShape = {}));
+var StageLevel;
+(function (StageLevel) {
+    StageLevel[StageLevel["START"] = 0] = "START";
+    StageLevel[StageLevel["LEVEL1"] = 1] = "LEVEL1";
+    StageLevel[StageLevel["LEVEL2"] = 2] = "LEVEL2";
+    StageLevel[StageLevel["GAMEOVER"] = 3] = "GAMEOVER";
+})(StageLevel || (StageLevel = {}));
 var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
@@ -33,6 +41,19 @@ var Main = (function (_super) {
         CreateWorld.worldBegin(timeStamp);
         return false;
     };
+    Main.random = function (min, max) {
+        return min + Math.random() * (max - min);
+    };
+    Main.randomInt = function (min, max) {
+        return Math.floor(min + Math.random() * (max + 0.999 - min));
+    };
+    Main.clamp = function (value, min, max) {
+        if (value < min)
+            value = min;
+        if (value > max)
+            value = max;
+        return value;
+    };
     return Main;
 }(eui.UILayer));
 __reflect(Main.prototype, "Main");
@@ -45,9 +66,11 @@ var CreateGameScene = (function () {
         /* new メソッドを記入*/
         new CreateWorld();
         new Ball();
+        new NormalBox(CreateGameScene.width / 2, CreateGameScene.height - 10, 100, 30);
         for (var i = 1; i < 10; i++)
-            new NormalBox(50 * i + 100, 100 * i + 200, 100, 30);
+            new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
     };
+    CreateGameScene.boxInterval = 200;
     return CreateGameScene;
 }());
 __reflect(CreateGameScene.prototype, "CreateGameScene");
@@ -75,8 +98,8 @@ var CreateWorld = (function (_super) {
     function CreateWorld() {
         var _this = _super.call(this) || this;
         _this.createWorld();
-        _this.createWall();
         return _this;
+        //this.createWall();
         //egret.startTick(CreateWorld.worldBegin, this);
     }
     CreateWorld.prototype.createWorld = function () {
@@ -94,18 +117,21 @@ var CreateWorld = (function (_super) {
             switch (i) {
                 //地面
                 case 0:
-                    planeBody[i].position = [0, CreateGameScene.height];
+                    planeBody[i].position = [CreateGameScene.width / 2, CreateGameScene.height - 100];
                     planeBody[i].angle = Math.PI; //rad表記
+                    //new NormalBox(planeBody[i].position[0]+180, planeBody[i].position[1], 100, 30);
                     break;
                 //右の壁
                 case 1:
                     planeBody[i].position = [CreateGameScene.width, CreateGameScene.height];
                     planeBody[i].angle = Math.PI / 2; //rad表記
+                    //new NormalBox(planeBody[i].position[0], planeBody[i].position[1], 100, 30);
                     break;
                 //左の壁
                 case 2:
                     planeBody[i].position = [0, CreateGameScene.height];
                     planeBody[i].angle = 3 * Math.PI / 2; //rad表記
+                    //new NormalBox(planeBody[i].position[0], planeBody[i].position[1], 100, 30);
                     break;
             }
             planeBody[i].addShape(planeShape[i]);
@@ -128,7 +154,7 @@ var Ball = (function (_super) {
         var _this = _super.call(this) || this;
         _this.radius = 20;
         Ball.I = _this;
-        _this.setBody(CreateGameScene.width / 2 * 0.5, 0, _this.radius);
+        _this.setBody(CreateGameScene.width / 2, CreateGameScene.height - 100, _this.radius);
         _this.setShape(_this.radius);
         GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) { return _this.touchMove(e); }, _this);
         return _this;
@@ -136,7 +162,7 @@ var Ball = (function (_super) {
     Ball.prototype.setBody = function (x, y, radius) {
         this.body = new p2.Body({ mass: 1, position: [x, y] });
         this.bodyShape = new p2.Circle({
-            radius: radius, collisionGroup: GraphicShape.CIECLE, collisionMask: GraphicShape.BOX | GraphicShape.PLANE
+            radius: radius, collisionGroup: GraphicShape.CIECLE, collisionMask: GraphicShape.BOX | GraphicShape.PLANE, fixedRotation: true
         });
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
@@ -163,13 +189,14 @@ var Ball = (function (_super) {
     };
     Ball.prototype.touchMove = function (e) {
         if (e.stageX <= this.shape.x) {
-            this.body.applyForceLocal([-500, 0], [0, 0]);
+            this.body.applyForce([-500, 0], [0, 0]);
         }
         else {
-            this.body.applyForceLocal([500, 0], [0, 0]);
+            this.body.applyForce([500, 0], [0, 0]);
         }
     };
     Ball.I = null; // singleton instance
+    Ball.beginJumpPositionY = null;
     return Ball;
 }(GameObject));
 __reflect(Ball.prototype, "Ball");
@@ -190,7 +217,7 @@ var Box = (function (_super) {
         //y -= height/2;
         this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
         this.bodyShape = new p2.Box({
-            width: width, height: height, collisionGroup: GraphicShape.BOX, collisionMask: GraphicShape.CIECLE | GraphicShape.PLANE
+            width: width, height: height, collisionGroup: GraphicShape.BOX, collisionMask: GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation: true
         });
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
@@ -212,16 +239,24 @@ var Box = (function (_super) {
     Box.prototype.updateContent = function () {
     };
     Box.prototype.collision = function (evt) {
-        /*
-               
-                const bodyA: p2.Body = evt.bodyA;
-                const bodyB: p2.Body = evt.bodyB;*/
+        var bodyA = evt.bodyA;
+        var bodyB = evt.bodyB;
         var shapeA = evt.shapeA;
         var shapeB = evt.shapeB;
         if ((shapeA.collisionGroup == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE)
             || (shapeB.collisionGroup == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE)) {
-            Ball.I.body.applyForceLocal([0, -10000], [0, 0]);
+            Ball.I.body.applyForce([0, -10000], [0, 0]);
+            if (Ball.beginJumpPositionY == null) {
+                Ball.beginJumpPositionY = bodyA.position[1];
+            }
+            console.log(Box.jumpLength(bodyA.position[1]));
+            Ball.beginJumpPositionY = bodyA.position[1];
         }
+    };
+    Box.jumpLength = function (jumpEndPosition) {
+        var length = Ball.beginJumpPositionY - jumpEndPosition;
+        console.log(length);
+        return length;
     };
     return Box;
 }(GameObject));
@@ -229,9 +264,7 @@ __reflect(Box.prototype, "Box");
 var NormalBox = (function (_super) {
     __extends(NormalBox, _super);
     function NormalBox(boxPositionX, boxPositionY, boxWidth, boxHeight) {
-        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
-        console.log(_this.boxPositionX);
-        return _this;
+        return _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
     }
     return NormalBox;
 }(Box));

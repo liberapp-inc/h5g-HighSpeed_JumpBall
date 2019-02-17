@@ -1,8 +1,16 @@
 //衝突判定用の列挙
 enum GraphicShape{
-    CIECLE = Math.pow(2,0),
-    BOX = Math.pow(2,1),
-    PLANE = Math.pow(2,2),
+    NONE = Math.pow(2,0),
+    CIECLE = Math.pow(2,1),
+    BOX = Math.pow(2,2),
+    PLANE = Math.pow(2,3),
+}
+
+enum StageLevel{
+    START,
+    LEVEL1,
+    LEVEL2,
+    GAMEOVER
 }
 
 class Main extends eui.UILayer {
@@ -26,14 +34,29 @@ class Main extends eui.UILayer {
         CreateWorld.worldBegin(timeStamp);
         return false;
     }
+
+    static random(min:number, max:number):number {
+        return min + Math.random() * (max - min);
+    }
+
+    static randomInt(min:number, max:number):number {
+        return Math.floor( min + Math.random() * (max+0.999 - min) );
+    }
+
+    static clamp(value:number, min:number, max:number):number {
+        if( value < min ) value = min;
+        if( value > max ) value = max;
+        return value;
+    }
     
 }
 
 class CreateGameScene{
 
-    public static height: number;
-    public static width: number;
-
+    static height: number;
+    static width: number;
+    static boxInterval :number = 200;
+    
     static init() {
         this.height = egret.MainContext.instance.stage.stageHeight;
         this.width  = egret.MainContext.instance.stage.stageWidth;
@@ -41,9 +64,14 @@ class CreateGameScene{
         /* new メソッドを記入*/
         new CreateWorld();
         new Ball();
+        new NormalBox(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30);
+        
+
+
+
 
         for(let i = 1; i < 10; i++)
-            new NormalBox(50*i+100, 100*i+200, 100, 30);
+            new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval*i+CreateGameScene.height, 100, 30);
     }
 
 
@@ -85,7 +113,7 @@ class CreateWorld extends GameObject{
     constructor(){
         super();
         this.createWorld();
-        this.createWall();
+        //this.createWall();
         //egret.startTick(CreateWorld.worldBegin, this);
     }
 
@@ -106,8 +134,9 @@ class CreateWorld extends GameObject{
             switch(i){
                 //地面
                 case 0:
-                    planeBody[i].position=  [0, CreateGameScene.height];
+                    planeBody[i].position=  [CreateGameScene.width/2, CreateGameScene.height-100];
                     planeBody[i].angle = Math.PI;//rad表記
+                    //new NormalBox(planeBody[i].position[0]+180, planeBody[i].position[1], 100, 30);
 
                 break;
 
@@ -115,12 +144,14 @@ class CreateWorld extends GameObject{
                 case 1:
                     planeBody[i].position=  [CreateGameScene.width, CreateGameScene.height];
                     planeBody[i].angle = Math.PI/2;//rad表記
+                    //new NormalBox(planeBody[i].position[0], planeBody[i].position[1], 100, 30);
                 break;
 
                 //左の壁
                 case 2:
                     planeBody[i].position=  [0, CreateGameScene.height];
                     planeBody[i].angle = 3* Math.PI/2;//rad表記
+                    //new NormalBox(planeBody[i].position[0], planeBody[i].position[1], 100, 30);
                 break;
 
             }
@@ -140,6 +171,7 @@ class CreateWorld extends GameObject{
 
     }
 
+
     static worldBegin(dt : number) :boolean{
        
         CreateWorld.world.step(1/60, dt/1000, 10);
@@ -149,6 +181,8 @@ class CreateWorld extends GameObject{
     
 
 }
+
+
 
 class Ball extends GameObject{
 
@@ -162,7 +196,7 @@ class Ball extends GameObject{
         super();
 
         Ball.I = this;
-        this.setBody(CreateGameScene.width/2 *0.5, 0, this.radius);
+        this.setBody(CreateGameScene.width/2, CreateGameScene.height-100, this.radius);
         this.setShape(this.radius);
         GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => this.touchMove(e), this);
 
@@ -172,7 +206,7 @@ class Ball extends GameObject{
 
         this.body = new p2.Body({mass : 1, position:[x,y]});
         this.bodyShape = new p2.Circle({
-            radius : radius, collisionGroup: GraphicShape.CIECLE, collisionMask:GraphicShape.BOX | GraphicShape.PLANE
+            radius : radius, collisionGroup: GraphicShape.CIECLE, collisionMask:GraphicShape.BOX | GraphicShape.PLANE, fixedRotation:true
         });
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
@@ -210,10 +244,10 @@ class Ball extends GameObject{
         
         if(e.stageX <= this.shape.x){
             
-            this.body.applyForceLocal([-500,0],[0,0]);
+            this.body.applyForce([-500,0],[0,0]);
         }
         else{
-            this.body.applyForceLocal([500, 0],[0,0]);
+            this.body.applyForce([500, 0],[0,0]);
 
         }
         
@@ -251,7 +285,7 @@ class Box extends GameObject{
         //y -= height/2;
         this.body = new p2.Body({mass : 1, position:[x,y], type:p2.Body.STATIC});
         this.bodyShape = new p2.Box({
-            width : width, height : height,collisionGroup: GraphicShape.BOX, collisionMask:GraphicShape.CIECLE | GraphicShape.PLANE
+            width : width, height : height,collisionGroup: GraphicShape.BOX, collisionMask:GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation:true
         });
 
         this.body.addShape(this.bodyShape);
@@ -281,19 +315,23 @@ class Box extends GameObject{
     }
 
     collision(evt) : void {
-/*        
+        
        
         const bodyA: p2.Body = evt.bodyA;
-        const bodyB: p2.Body = evt.bodyB;*/
+        const bodyB: p2.Body = evt.bodyB;
         const shapeA = evt.shapeA;
         const shapeB = evt.shapeB;
         if((shapeA.collisionGroup  == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE) 
         || (shapeB.collisionGroup  == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE) ){
-            Ball.I.body.applyForceLocal([0,-10000],[0,0]);
+            Ball.I.body.applyForce([0,-10000],[0,0]);
+
+
+
         }
 
 
     }
+
 
 }
 
@@ -301,7 +339,6 @@ class Box extends GameObject{
 class NormalBox extends Box{
     constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
         super(boxPositionX, boxPositionY , boxWidth, boxHeight);
-        console.log(this.boxPositionX);
         
     }
 }
