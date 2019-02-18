@@ -55,7 +55,7 @@ class CreateGameScene{
 
     static height: number;
     static width: number;
-    static boxInterval :number = 200;
+    static boxInterval :number = 50;
     
     static init() {
         this.height = egret.MainContext.instance.stage.stageHeight;
@@ -70,7 +70,7 @@ class CreateGameScene{
 
 
 
-        for(let i = 1; i < 10; i++)
+        for(let i = 1; i < 50; i++)
             new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval*i+CreateGameScene.height, 100, 30);
     }
 
@@ -187,6 +187,8 @@ class CreateWorld extends GameObject{
 class Ball extends GameObject{
 
     static I:Ball = null;   // singleton instance
+    static ballPosY : number;
+    static finalBallPosY : number = Ball.ballPosY;
 
 
     radius:number = 20;
@@ -198,6 +200,8 @@ class Ball extends GameObject{
         Ball.I = this;
         this.setBody(CreateGameScene.width/2, CreateGameScene.height-100, this.radius);
         this.setShape(this.radius);
+        Ball.ballPosY = this.body.position[1];
+        
         GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => this.touchMove(e), this);
 
     }
@@ -237,6 +241,7 @@ class Ball extends GameObject{
 
     updateContent(){
         this.updateDrowShape();
+        Ball.ballPosY = this.body.position[1];
         
     }
 
@@ -265,6 +270,8 @@ class Box extends GameObject{
     protected boxHeight :number;
     protected boxPositionX : number;
     protected boxPositionY : number;
+    static boxMove : boolean;
+    static moveDistance : number = 0;
     
     constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number) {
         super();
@@ -283,9 +290,9 @@ class Box extends GameObject{
     setBody(x: number, y:number, width: number, height : number){
 
         //y -= height/2;
-        this.body = new p2.Body({mass : 1, position:[x,y], type:p2.Body.STATIC});
+        this.body = new p2.Body({mass : 1, position:[x,y], type:p2.Body.KINEMATIC});
         this.bodyShape = new p2.Box({
-            width : width, height : height,collisionGroup: GraphicShape.BOX, collisionMask:GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation:true
+            width : width, height : height,collisionGroup: GraphicShape.BOX, collisionMask:GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation:true, sensor : true
         });
 
         this.body.addShape(this.bodyShape);
@@ -310,24 +317,63 @@ class Box extends GameObject{
         
     }
 
+/*    updateDrowShape(){
+        this.shape.x = this.body.position[0];
+        this.shape.y = this.body.position[1];
+        GameObject.display.addChild(this.shape);
+    }*/
+
+
     updateContent(){
-        
+
+        let v = 50;
+        if(Box.boxMove == true){
+            this.body.position[1] +=v;
+            this.shape.y +=v;
+console.log(Box.boxMove);
+
+                Box.boxMove = false
+            
+            
+        }
     }
 
     collision(evt) : void {
         
        
         const bodyA: p2.Body = evt.bodyA;
-        const bodyB: p2.Body = evt.bodyB;
-        const shapeA = evt.shapeA;
-        const shapeB = evt.shapeB;
-        if((shapeA.collisionGroup  == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE) 
+/*        const bodyB: p2.Body = evt.bodyB;*/
+        const shapeA  = evt.shapeA;
+/*        const shapeB = evt.shapeB;*/
+/*        if((shapeA.collisionGroup  == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE) 
         || (shapeB.collisionGroup  == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE) ){
+
+
+            console.log(Ball.ballPosY);
+            console.log(bodyA.position[1]);
+            console.log(bodyB.position[1]);
+            
+            //Ball.I.body.applyForce([0,-10000],[0,0]);
+
+
+
+        }*/
+        //足場よりもボールが上にあるとき
+        if(Ball.ballPosY < bodyA.position[1]){
             Ball.I.body.applyForce([0,-10000],[0,0]);
 
+            Box.moveDistance = Ball.finalBallPosY -Ball.ballPosY ;
+            Ball.finalBallPosY = Ball.ballPosY;
 
+            Box.boxMove = true;
+            
+            
+/*            console.log(this.moveDistance);
+            
+            Box.boxMove = true;*/
 
         }
+
 
 
     }

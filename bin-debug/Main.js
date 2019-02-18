@@ -67,10 +67,10 @@ var CreateGameScene = (function () {
         new CreateWorld();
         new Ball();
         new NormalBox(CreateGameScene.width / 2, CreateGameScene.height - 10, 100, 30);
-        for (var i = 1; i < 10; i++)
+        for (var i = 1; i < 50; i++)
             new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
     };
-    CreateGameScene.boxInterval = 200;
+    CreateGameScene.boxInterval = 50;
     return CreateGameScene;
 }());
 __reflect(CreateGameScene.prototype, "CreateGameScene");
@@ -156,6 +156,7 @@ var Ball = (function (_super) {
         Ball.I = _this;
         _this.setBody(CreateGameScene.width / 2, CreateGameScene.height - 100, _this.radius);
         _this.setShape(_this.radius);
+        Ball.ballPosY = _this.body.position[1];
         GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) { return _this.touchMove(e); }, _this);
         return _this;
     }
@@ -186,6 +187,7 @@ var Ball = (function (_super) {
     };
     Ball.prototype.updateContent = function () {
         this.updateDrowShape();
+        Ball.ballPosY = this.body.position[1];
     };
     Ball.prototype.touchMove = function (e) {
         if (e.stageX <= this.shape.x) {
@@ -196,7 +198,7 @@ var Ball = (function (_super) {
         }
     };
     Ball.I = null; // singleton instance
-    Ball.beginJumpPositionY = null;
+    Ball.finalBallPosY = CreateGameScene.height - 100;
     return Ball;
 }(GameObject));
 __reflect(Ball.prototype, "Ball");
@@ -215,9 +217,9 @@ var Box = (function (_super) {
     }
     Box.prototype.setBody = function (x, y, width, height) {
         //y -= height/2;
-        this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
+        this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.KINEMATIC });
         this.bodyShape = new p2.Box({
-            width: width, height: height, collisionGroup: GraphicShape.BOX, collisionMask: GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation: true
+            width: width, height: height, collisionGroup: GraphicShape.BOX, collisionMask: GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation: true, sensor: true
         });
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
@@ -236,28 +238,50 @@ var Box = (function (_super) {
         this.shape.graphics.endFill();
         GameObject.display.addChild(this.shape);
     };
+    /*    updateDrowShape(){
+            this.shape.x = this.body.position[0];
+            this.shape.y = this.body.position[1];
+            GameObject.display.addChild(this.shape);
+        }*/
     Box.prototype.updateContent = function () {
+        var v = 50;
+        if (Box.boxMove == true) {
+            this.body.position[1] += v;
+            this.shape.y += v;
+            console.log(Box.boxMove);
+            Box.boxMove = false;
+        }
     };
     Box.prototype.collision = function (evt) {
         var bodyA = evt.bodyA;
-        var bodyB = evt.bodyB;
+        /*        const bodyB: p2.Body = evt.bodyB;*/
         var shapeA = evt.shapeA;
-        var shapeB = evt.shapeB;
-        if ((shapeA.collisionGroup == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE)
-            || (shapeB.collisionGroup == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE)) {
+        /*        const shapeB = evt.shapeB;*/
+        /*        if((shapeA.collisionGroup  == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE)
+                || (shapeB.collisionGroup  == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE) ){
+        
+        
+                    console.log(Ball.ballPosY);
+                    console.log(bodyA.position[1]);
+                    console.log(bodyB.position[1]);
+                    
+                    //Ball.I.body.applyForce([0,-10000],[0,0]);
+        
+        
+        
+                }*/
+        //足場よりもボールが上にあるとき
+        if (Ball.ballPosY < bodyA.position[1]) {
             Ball.I.body.applyForce([0, -10000], [0, 0]);
-            if (Ball.beginJumpPositionY == null) {
-                Ball.beginJumpPositionY = bodyA.position[1];
-            }
-            console.log(Box.jumpLength(bodyA.position[1]));
-            Ball.beginJumpPositionY = bodyA.position[1];
+            Box.moveDistance = Ball.finalBallPosY - Ball.ballPosY;
+            Ball.finalBallPosY = Ball.ballPosY;
+            Box.boxMove = true;
+            /*            console.log(this.moveDistance);
+                        
+                        Box.boxMove = true;*/
         }
     };
-    Box.jumpLength = function (jumpEndPosition) {
-        var length = Ball.beginJumpPositionY - jumpEndPosition;
-        console.log(length);
-        return length;
-    };
+    Box.moveDistance = 0;
     return Box;
 }(GameObject));
 __reflect(Box.prototype, "Box");
