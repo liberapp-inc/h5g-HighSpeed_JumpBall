@@ -55,7 +55,7 @@ class CreateGameScene{
 
     static height: number;
     static width: number;
-    static boxInterval :number = 50;
+    static boxInterval :number = 100;
     
     static init() {
         this.height = egret.MainContext.instance.stage.stageHeight;
@@ -102,6 +102,7 @@ abstract class GameObject {
 
     static update(){
         GameObject.objects.forEach(obj => obj.updateContent());
+
 
     }
 
@@ -188,7 +189,7 @@ class Ball extends GameObject{
 
     static I:Ball = null;   // singleton instance
     static ballPosY : number;
-    static finalBallPosY : number = Ball.ballPosY;
+    static finalBallPosY : number ;
 
 
     radius:number = 20;
@@ -201,6 +202,7 @@ class Ball extends GameObject{
         this.setBody(CreateGameScene.width/2, CreateGameScene.height-100, this.radius);
         this.setShape(this.radius);
         Ball.ballPosY = this.body.position[1];
+        Ball.finalBallPosY =  CreateGameScene.height-100;
         
         GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => this.touchMove(e), this);
 
@@ -270,7 +272,7 @@ class Box extends GameObject{
     protected boxHeight :number;
     protected boxPositionX : number;
     protected boxPositionY : number;
-    static boxMove : boolean;
+    static boxMove : boolean = false;
     static moveDistance : number = 0;
     
     constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number) {
@@ -323,17 +325,34 @@ class Box extends GameObject{
         GameObject.display.addChild(this.shape);
     }*/
 
-
+private a : number = 0;
+static s : number = 0;
+static v : number = 0;
     updateContent(){
+        //console.log( Box.boxMove);
+/*        this.s = Box.moveDistance;
+        this.v = Box.moveDistance/50;
+        console.log(this.a);
+        console.log(this.s);*/
 
-        let v = 50;
-        if(Box.boxMove == true){
-            this.body.position[1] +=v;
-            this.shape.y +=v;
-console.log(Box.boxMove);
+        if(this.a >= Box.moveDistance){
+        Box.s=0;
+        Box.v = 0;
+        this.a = 0;
 
-                Box.boxMove = false
+        //console.log(Box.boxMove);
+        Box.boxMove = false
+
+
+        }else{
+
+            this.body.position[1] +=   Box.v;
+            this.shape.y +=            Box.v;
+            this.a +=                  Box.v;
             
+        }
+
+        if(Box.boxMove == true){
             
         }
     }
@@ -359,19 +378,25 @@ console.log(Box.boxMove);
 
         }*/
         //足場よりもボールが上にあるとき
-        if(Ball.ballPosY < bodyA.position[1]){
-            Ball.I.body.applyForce([0,-10000],[0,0]);
 
-            Box.moveDistance = Ball.finalBallPosY -Ball.ballPosY ;
-            Ball.finalBallPosY = Ball.ballPosY;
+        if(Box.boxMove == false){
 
-            Box.boxMove = true;
-            
-            
-/*            console.log(this.moveDistance);
-            
-            Box.boxMove = true;*/
+            if(Ball.ballPosY < bodyA.position[1]){
+                
+                Box.moveDistance = Ball.finalBallPosY -bodyA.position[1] ;
+                Ball.finalBallPosY = bodyA.position[1];
+                Ball.I.body.applyForce([0,-10000],[0,0]);
 
+
+                this.a = 0;
+                Box.s = 0;
+                Box.v = 0;
+                Box.s = Box.moveDistance + this.boxHeight/2;
+                Box.v = Box.moveDistance/20;
+                Ball.finalBallPosY += Box.s;
+                Box.boxMove = true;
+
+            }
         }
 
 

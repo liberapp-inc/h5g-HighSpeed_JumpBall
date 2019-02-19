@@ -70,7 +70,7 @@ var CreateGameScene = (function () {
         for (var i = 1; i < 50; i++)
             new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
     };
-    CreateGameScene.boxInterval = 50;
+    CreateGameScene.boxInterval = 100;
     return CreateGameScene;
 }());
 __reflect(CreateGameScene.prototype, "CreateGameScene");
@@ -157,6 +157,7 @@ var Ball = (function (_super) {
         _this.setBody(CreateGameScene.width / 2, CreateGameScene.height - 100, _this.radius);
         _this.setShape(_this.radius);
         Ball.ballPosY = _this.body.position[1];
+        Ball.finalBallPosY = CreateGameScene.height - 100;
         GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) { return _this.touchMove(e); }, _this);
         return _this;
     }
@@ -198,7 +199,6 @@ var Ball = (function (_super) {
         }
     };
     Ball.I = null; // singleton instance
-    Ball.finalBallPosY = CreateGameScene.height - 100;
     return Ball;
 }(GameObject));
 __reflect(Ball.prototype, "Ball");
@@ -206,6 +206,12 @@ var Box = (function (_super) {
     __extends(Box, _super);
     function Box(boxPositionX, boxPositionY, boxWidth, boxHeight) {
         var _this = _super.call(this) || this;
+        /*    updateDrowShape(){
+                this.shape.x = this.body.position[0];
+                this.shape.y = this.body.position[1];
+                GameObject.display.addChild(this.shape);
+            }*/
+        _this.a = 0;
         _this.boxPositionX = boxPositionX;
         _this.boxPositionY = boxPositionY;
         _this.boxWidth = boxWidth;
@@ -238,18 +244,25 @@ var Box = (function (_super) {
         this.shape.graphics.endFill();
         GameObject.display.addChild(this.shape);
     };
-    /*    updateDrowShape(){
-            this.shape.x = this.body.position[0];
-            this.shape.y = this.body.position[1];
-            GameObject.display.addChild(this.shape);
-        }*/
     Box.prototype.updateContent = function () {
-        var v = 50;
-        if (Box.boxMove == true) {
-            this.body.position[1] += v;
-            this.shape.y += v;
-            console.log(Box.boxMove);
+        //console.log( Box.boxMove);
+        /*        this.s = Box.moveDistance;
+                this.v = Box.moveDistance/50;
+                console.log(this.a);
+                console.log(this.s);*/
+        if (this.a >= Box.moveDistance) {
+            Box.s = 0;
+            Box.v = 0;
+            this.a = 0;
+            //console.log(Box.boxMove);
             Box.boxMove = false;
+        }
+        else {
+            this.body.position[1] += Box.v;
+            this.shape.y += Box.v;
+            this.a += Box.v;
+        }
+        if (Box.boxMove == true) {
         }
     };
     Box.prototype.collision = function (evt) {
@@ -271,17 +284,28 @@ var Box = (function (_super) {
         
                 }*/
         //足場よりもボールが上にあるとき
-        if (Ball.ballPosY < bodyA.position[1]) {
-            Ball.I.body.applyForce([0, -10000], [0, 0]);
-            Box.moveDistance = Ball.finalBallPosY - Ball.ballPosY;
-            Ball.finalBallPosY = Ball.ballPosY;
-            Box.boxMove = true;
-            /*            console.log(this.moveDistance);
-                        
-                        Box.boxMove = true;*/
+        if (Box.boxMove == false) {
+            if (Ball.ballPosY < bodyA.position[1]) {
+                Box.moveDistance = Ball.finalBallPosY - bodyA.position[1];
+                console.log("a" + Ball.finalBallPosY);
+                Ball.finalBallPosY = bodyA.position[1];
+                console.log("b" + Ball.finalBallPosY);
+                Ball.I.body.applyForce([0, -10000], [0, 0]);
+                this.a = 0;
+                Box.s = 0;
+                Box.v = 0;
+                Box.s = Box.moveDistance + this.boxHeight / 2;
+                Box.v = Box.moveDistance / 20;
+                Ball.finalBallPosY += Box.s;
+                Box.boxMove = true;
+                //console.log(Box.moveDistance);
+            }
         }
     };
+    Box.boxMove = false;
     Box.moveDistance = 0;
+    Box.s = 0;
+    Box.v = 0;
     return Box;
 }(GameObject));
 __reflect(Box.prototype, "Box");
