@@ -12,9 +12,12 @@
 		"libs/modules/physics/physics.js"
 	],
 	"game": [
-		"bin-debug/AssetAdapter.js",
-		"bin-debug/LoadingUI.js",
 		"bin-debug/Main.js",
+		"bin-debug/AssetAdapter.js",
+		"bin-debug/Ball.js",
+		"bin-debug/Box.js",
+		"bin-debug/LoadingUI.js",
+		"bin-debug/MyText.js",
 		"bin-debug/Platform.js",
 		"bin-debug/ThemeAdapter.js"
 	]

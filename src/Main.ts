@@ -3,7 +3,8 @@ enum GraphicShape{
     NONE = Math.pow(2,0),
     CIECLE = Math.pow(2,1),
     BOX = Math.pow(2,2),
-    PLANE = Math.pow(2,3),
+    CEILING = Math.pow(2,3),
+    DEAD_LINE = Math.pow(2,4),
 }
 
 enum StageLevel{
@@ -55,6 +56,7 @@ class Main extends eui.UILayer {
         if( value > max ) value = max;
         return value;
     }
+
     
 }
 
@@ -63,6 +65,7 @@ class CreateGameScene{
     static height: number;
     static width: number;
     static boxInterval :number = 80;
+    static score :number = 0;
 
     
     static init() {
@@ -70,33 +73,37 @@ class CreateGameScene{
         this.width  = egret.MainContext.instance.stage.stageWidth;
         
         /* new メソッドを記入*/
+        new Background();
         new CreateWorld();
+        new Wall();
+        new MyText(0,0,"Score " + Math.floor(CreateGameScene.score).toString(),100, 0.5,0xFFFFFF,"Meiryo",0x000000, 0);
         new Ball();
         new NormalBlock(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30);
         
         let randomBlock : number;
 
+        let initialArangeBox :number = this.height/this.boxInterval;
+        console.log(Math.floor(initialArangeBox));
+        
 
-            for(let i = 1; i < 50; i++){
+
+            for(let i = 1; i < initialArangeBox; i++){
             
                 randomBlock = Main.randomInt(0,2);
 
                 switch(randomBlock){
 
                     case Block.NORMAL:
-                    console.log("0");
                     new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
                     
 
                     break;
 
                     case Block.HORIZONTAL_MOVE:
-                    console.log("1");
                     new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
                     break;
 
                     case Block.VERTICAL_MOVE:
-                    console.log("2");
                     new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
                     break;
 
@@ -145,7 +152,7 @@ class CreateWorld extends GameObject{
     constructor(){
         super();
         this.createWorld();
-        //this.createWall();
+        this.createWall();
         //egret.startTick(CreateWorld.worldBegin, this);
     }
 
@@ -157,11 +164,11 @@ class CreateWorld extends GameObject{
     }
     createWall(){
         //見えない壁や地面の生成
-        for(let i = 0; i < 3; i++){
+        /*for(let i = 0; i < 3; i++){
             const planeBody: p2.Body[] = [];
             planeBody[i] = new p2.Body({fixedRotation:true ,type:p2.Body.STATIC});
             const planeShape: p2.Plane[] = [];
-            planeShape[i] = new p2.Plane();
+            planeShape[i] = new p2.Plane({collisionGroup: GraphicShape.CEILING, collisionMask:GraphicShape.CIECLE});
             
             switch(i){
                 //地面
@@ -190,7 +197,8 @@ class CreateWorld extends GameObject{
 
             planeBody[i].addShape(planeShape[i]);
             CreateWorld.world.addBody(planeBody[i]);
-        }
+        }*/
+
 
 
 
@@ -214,213 +222,25 @@ class CreateWorld extends GameObject{
 
 }
 
+class Wall extends GameObject{
 
+    private ceilingHeight : number = 50;
 
-class Ball extends GameObject{
-
-    static I:Ball = null;   // singleton instance
-    static ballPosY : number;
-    static finalBallPosY : number ;
-    static checkRiseFlag : boolean = false;
-
-    radius:number = 20;
-
-
-    constructor() {
+        constructor() {
         super();
-
-        Ball.I = this;
-        this.setBody(CreateGameScene.width/2, CreateGameScene.height-100, this.radius);
-        this.setShape(this.radius);
-        Ball.ballPosY = this.body.position[1];
-        Ball.finalBallPosY =  CreateGameScene.height-100;
-        
-        GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => this.touchMove(e), this);
-
+        this.createWall();
     }
 
-    setBody(x: number, y:number, radius: number){
-
-        this.body = new p2.Body({mass : 1, position:[x,y]});
-        this.bodyShape = new p2.Circle({
-            radius : radius, collisionGroup: GraphicShape.CIECLE, collisionMask:GraphicShape.BOX | GraphicShape.PLANE, fixedRotation:true
-        });
-        this.body.addShape(this.bodyShape);
-        CreateWorld.world.addBody(this.body);
-        
-    }
-
-    setShape(radius: number){
-        if( this.shape ){
-            GameObject.display.removeChild(this.shape);        
-        }
-
-        this.shape = new egret.Shape();
-        this.shape.x = this.body.position[0];
-        this.shape.y = this.body.position[1];
-        this.shape.graphics.beginFill(0xff0000);
-        this.shape.graphics.drawCircle(0, 0, radius);
-        this.shape.graphics.endFill();
-        GameObject.display.addChild(this.shape);
-        
-    }
-
-    updateDrowShape(){
-        this.shape.x = this.body.position[0];
-        this.shape.y = this.body.position[1];
-        GameObject.display.addChild(this.shape);
-    }
-
-
-    updateContent(){
-        this.updateDrowShape();
-        this.checkRise();
-    }
-
-    touchMove(e:egret.TouchEvent){
-        
-        if(e.stageX <= this.shape.x){
-            
-            this.body.applyForce([-500,0],[0,0]);
-        }
-        else{
-            this.body.applyForce([500, 0],[0,0]);
-
-        }
-        
-    }
-
-    checkRise(){
-        Ball.ballPosY = this.body.position[1];
-
-        //取得したボールの高さよりも現在の方が上　→　上昇
-        if(Ball.ballPosY < this.body.position[1]){
-            Ball.checkRiseFlag = true;
-        }else{
-            Ball.checkRiseFlag = false;
-
-        }
-
-
-    }
-
-
-
-
-
-}
-
-class Box extends GameObject{
-
-    protected boxWidth :number;
-    protected boxHeight :number;
-    protected boxPositionX : number;
-    protected boxPositionY : number;
-    //static boxMove : boolean = false;
-    //static moveDistance : number = 0;
-    static blockdownSpeed : number = 3;
-    
-    constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number) {
-        super();
-        this.boxPositionX = boxPositionX;
-        this.boxPositionY = boxPositionY;
-        this.boxWidth = boxWidth ;
-        this.boxHeight =boxHeight;
-        this.setBody(this.boxPositionX, this.boxPositionY, this.boxWidth, this.boxHeight);
-        this.setShape(this.boxWidth, this.boxHeight);
-        CreateWorld.world.on("beginContact",  this.collision, this);
-
-
-    }
-
-
-    setBody(x: number, y:number, width: number, height : number){
-
-        this.body = new p2.Body({mass : 1, position:[x,y], type:p2.Body.KINEMATIC});
+    createWall(){
+        this.body =  new p2.Body({mass : 1, position:[CreateGameScene.width/2,200], fixedRotation:true ,type:p2.Body.STATIC});
         this.bodyShape = new p2.Box({
-            width : width, height : height,collisionGroup: GraphicShape.BOX, collisionMask:GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation:true, sensor : true
+            whidth:CreateGameScene.width, height : this.ceilingHeight, collisionGroup: GraphicShape.CEILING, collisionMask:GraphicShape.CIECLE,
         });
-
+        //ceilingBody.position=  [CreateGameScene.width/2, CreateGameScene.height-100];
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
-        
-    }
 
-    setShape(width: number, height : number){
-        if( this.shape ){
-            GameObject.display.removeChild(this.shape);        
-        }
-
-        this.shape = new egret.Shape();
-        this.shape.anchorOffsetX += width/2;//p2とEgretは座標軸とアンカー位置が違うので調整
-        this.shape.anchorOffsetY += height/2;
-        this.shape.x = this.body.position[0] /*+ width*/;
-        this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0x7fff7f);
-        this.shape.graphics.drawRect(0, 0, width , height);
-        this.shape.graphics.endFill();
-        GameObject.display.addChild(this.shape);
-        
-    }
-
-
-    updateContent(){
-        this.moveBlock();
-    }
-
-    moveBlock(){
-        this.body.position[1] +=   Box.blockdownSpeed;
-        this.shape.y +=            Box.blockdownSpeed;
-    }
-
-
-    collision(evt) : void {
-        
-       
-        const bodyA: p2.Body = evt.bodyA;
-        const shapeA  = evt.shapeA;
-
-        if(Ball.checkRiseFlag == false){
-
-            //足場よりもボールが上にあるとき
-            if(Ball.ballPosY < bodyA.position[1]){
-                Ball.I.body.applyForce([0,-10000],[0,0]);
-
-            }
-        }
-
-    }
-
-
-}
-
-
-class NormalBlock extends Box{
-
-    constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
-        super(boxPositionX, boxPositionY , boxWidth, boxHeight);
-    }
-
-}
-
-class HorizontalMoveBlock extends Box{
-
-    private rightMove : boolean;
-    static horizontalMoveSpeed : number = 2;
-
-    constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
-        super(boxPositionX, boxPositionY , boxWidth, boxHeight);
-        let setRandamMove = Main.randomInt(0,1);
-        switch(setRandamMove){
-            case 0:
-            this.rightMove = false;
-            break;
-
-            case  1:
-            this.rightMove = true;
-            break;
-        }
-
+        this.setShape(CreateGameScene.width, this.ceilingHeight);
     }
 
     setShape(width: number, height : number){
@@ -442,104 +262,27 @@ class HorizontalMoveBlock extends Box{
 
     updateContent(){
 
-        this.moveBlock();
-
-        switch(this.rightMove){//左へ移動
-            
-            case false:
-                if(this.body.position[0] <= 0){
-                    this.rightMove = true;
-                }else{
-                    this.body.position[0] -= HorizontalMoveBlock.horizontalMoveSpeed;
-                    this.shape.x = this.body.position[0];
-                }
-            break;
-
-            case true:
-                if(this.body.position[0] > CreateGameScene.width){
-                    this.rightMove = false;
-                }else{
-                    this.body.position[0] += HorizontalMoveBlock.horizontalMoveSpeed;
-                    this.shape.x = this.body.position[0];
-                }
-            break;
-        }
-
+        
     }
 
 }
 
-class VerticalMoveBlock extends Box{
 
-    private upMove : boolean;
-    private moveLength : number = 0;
-    static verticalMoveSpeed : number = 2;
-    static clampVerticalMoveLength : number = 200;
 
-    constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
-        super(boxPositionX, boxPositionY , boxWidth, boxHeight);
-        let setRandamMove = Main.randomInt(0,1);
-        switch(setRandamMove){
-            case 0:
-            this.upMove = false;
-            break;
+class Background extends GameObject{
 
-            case  1:
-            this.upMove = true;
-            break;
-        }
+    private obj : egret.Shape;
+    
+    constructor() {
+        super();
 
+        this.obj = new egret.Shape();
+        this.obj.graphics.beginFill(0x000080);
+        this.obj.graphics.drawRect(0, 0, CreateGameScene.width, CreateGameScene.height);
+        this.obj.graphics.endFill();
+        GameObject.display.addChild(this.obj);
     }
-
-    setShape(width: number, height : number){
-        if( this.shape ){
-            GameObject.display.removeChild(this.shape);        
-        }
-
-        this.shape = new egret.Shape();
-        this.shape.anchorOffsetX += width/2;//p2とEgretは座標軸とアンカー位置が違うので調整
-        this.shape.anchorOffsetY += height/2;
-        this.shape.x = this.body.position[0] /*+ width*/;
-        this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0xff7f7f);
-        this.shape.graphics.drawRect(0, 0, width , height);
-        this.shape.graphics.endFill();
-        GameObject.display.addChild(this.shape);
-        
-    }
-
-    updateContent(){
-
-        this.moveBlock();
-        
-        switch(this.upMove){//下へ移動
-            
-            case false:
-                if(this.moveLength >= VerticalMoveBlock.clampVerticalMoveLength){
-                    this.upMove = true;
-                    this.moveLength = 0;
-                }else{
-                    this.body.position[1] -= VerticalMoveBlock.verticalMoveSpeed;
-                    this.shape.y = this.body.position[1];
-                    this.moveLength += VerticalMoveBlock.verticalMoveSpeed;
-                }
-            break;
-
-            case true:
-                if(this.moveLength >= VerticalMoveBlock.clampVerticalMoveLength){
-                    this.upMove = false;
-                    this.moveLength = 0;
-
-                }else{
-                    this.body.position[1] += VerticalMoveBlock.verticalMoveSpeed;
-                    this.shape.y = this.body.position[1];
-                    this.moveLength += VerticalMoveBlock.verticalMoveSpeed;
-
-                }
-            break;
-        }
-
-
-    }
-
+    
+    updateContent() {}
 }
+
