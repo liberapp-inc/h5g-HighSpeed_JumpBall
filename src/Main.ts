@@ -13,6 +13,13 @@ enum StageLevel{
     GAMEOVER
 }
 
+enum Block{
+    NORMAL,
+    HORIZONTAL_MOVE,
+    VERTICAL_MOVE
+
+}
+
 class Main extends eui.UILayer {
 
     static timeStamp : number;
@@ -55,7 +62,8 @@ class CreateGameScene{
 
     static height: number;
     static width: number;
-    static boxInterval :number = 100;
+    static boxInterval :number = 80;
+
     
     static init() {
         this.height = egret.MainContext.instance.stage.stageHeight;
@@ -64,15 +72,38 @@ class CreateGameScene{
         /* new メソッドを記入*/
         new CreateWorld();
         new Ball();
-        new NormalBox(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30);
+        new NormalBlock(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30);
         
+        let randomBlock : number;
 
 
+            for(let i = 1; i < 50; i++){
+            
+                randomBlock = Main.randomInt(0,2);
 
+                switch(randomBlock){
 
-        for(let i = 1; i < 50; i++)
-            new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval*i+CreateGameScene.height, 100, 30);
-    }
+                    case Block.NORMAL:
+                    console.log("0");
+                    new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    
+
+                    break;
+
+                    case Block.HORIZONTAL_MOVE:
+                    console.log("1");
+                    new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    break;
+
+                    case Block.VERTICAL_MOVE:
+                    console.log("2");
+                    new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    break;
+
+                }
+
+            }
+        }
 
 
 }
@@ -190,7 +221,7 @@ class Ball extends GameObject{
     static I:Ball = null;   // singleton instance
     static ballPosY : number;
     static finalBallPosY : number ;
-
+    static checkRiseFlag : boolean = false;
 
     radius:number = 20;
 
@@ -243,8 +274,7 @@ class Ball extends GameObject{
 
     updateContent(){
         this.updateDrowShape();
-        Ball.ballPosY = this.body.position[1];
-        
+        this.checkRise();
     }
 
     touchMove(e:egret.TouchEvent){
@@ -260,6 +290,20 @@ class Ball extends GameObject{
         
     }
 
+    checkRise(){
+        Ball.ballPosY = this.body.position[1];
+
+        //取得したボールの高さよりも現在の方が上　→　上昇
+        if(Ball.ballPosY < this.body.position[1]){
+            Ball.checkRiseFlag = true;
+        }else{
+            Ball.checkRiseFlag = false;
+
+        }
+
+
+    }
+
 
 
 
@@ -272,8 +316,9 @@ class Box extends GameObject{
     protected boxHeight :number;
     protected boxPositionX : number;
     protected boxPositionY : number;
-    static boxMove : boolean = false;
-    static moveDistance : number = 0;
+    //static boxMove : boolean = false;
+    //static moveDistance : number = 0;
+    static blockdownSpeed : number = 3;
     
     constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number) {
         super();
@@ -291,7 +336,6 @@ class Box extends GameObject{
 
     setBody(x: number, y:number, width: number, height : number){
 
-        //y -= height/2;
         this.body = new p2.Body({mass : 1, position:[x,y], type:p2.Body.KINEMATIC});
         this.bodyShape = new p2.Box({
             width : width, height : height,collisionGroup: GraphicShape.BOX, collisionMask:GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation:true, sensor : true
@@ -312,105 +356,190 @@ class Box extends GameObject{
         this.shape.anchorOffsetY += height/2;
         this.shape.x = this.body.position[0] /*+ width*/;
         this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0xff0000);
+        this.shape.graphics.beginFill(0x7fff7f);
         this.shape.graphics.drawRect(0, 0, width , height);
         this.shape.graphics.endFill();
         GameObject.display.addChild(this.shape);
         
     }
 
-/*    updateDrowShape(){
-        this.shape.x = this.body.position[0];
-        this.shape.y = this.body.position[1];
-        GameObject.display.addChild(this.shape);
-    }*/
 
-private a : number = 0;
-static s : number = 0;
-static v : number = 0;
     updateContent(){
-        //console.log( Box.boxMove);
-/*        this.s = Box.moveDistance;
-        this.v = Box.moveDistance/50;
-        console.log(this.a);
-        console.log(this.s);*/
-
-        if(this.a >= Box.moveDistance){
-        Box.s=0;
-        Box.v = 0;
-        this.a = 0;
-
-        //console.log(Box.boxMove);
-        Box.boxMove = false
-
-
-        }else{
-
-            this.body.position[1] +=   Box.v;
-            this.shape.y +=            Box.v;
-            this.a +=                  Box.v;
-            
-        }
-
-        if(Box.boxMove == true){
-            
-        }
+        this.moveBlock();
     }
+
+    moveBlock(){
+        this.body.position[1] +=   Box.blockdownSpeed;
+        this.shape.y +=            Box.blockdownSpeed;
+    }
+
 
     collision(evt) : void {
         
        
         const bodyA: p2.Body = evt.bodyA;
-/*        const bodyB: p2.Body = evt.bodyB;*/
         const shapeA  = evt.shapeA;
-/*        const shapeB = evt.shapeB;*/
-/*        if((shapeA.collisionGroup  == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE) 
-        || (shapeB.collisionGroup  == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE) ){
 
+        if(Ball.checkRiseFlag == false){
 
-            console.log(Ball.ballPosY);
-            console.log(bodyA.position[1]);
-            console.log(bodyB.position[1]);
-            
-            //Ball.I.body.applyForce([0,-10000],[0,0]);
-
-
-
-        }*/
-        //足場よりもボールが上にあるとき
-
-        if(Box.boxMove == false){
-
+            //足場よりもボールが上にあるとき
             if(Ball.ballPosY < bodyA.position[1]){
-                
-                Box.moveDistance = Ball.finalBallPosY -bodyA.position[1] ;
-                Ball.finalBallPosY = bodyA.position[1];
                 Ball.I.body.applyForce([0,-10000],[0,0]);
-
-
-                this.a = 0;
-                Box.s = 0;
-                Box.v = 0;
-                Box.s = Box.moveDistance + this.boxHeight/2;
-                Box.v = Box.moveDistance/20;
-                Ball.finalBallPosY += Box.s;
-                Box.boxMove = true;
 
             }
         }
 
-
-
     }
 
 
 }
 
 
-class NormalBox extends Box{
+class NormalBlock extends Box{
+
     constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
         super(boxPositionX, boxPositionY , boxWidth, boxHeight);
-        
     }
+
 }
 
+class HorizontalMoveBlock extends Box{
+
+    private rightMove : boolean;
+    static horizontalMoveSpeed : number = 2;
+
+    constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
+        super(boxPositionX, boxPositionY , boxWidth, boxHeight);
+        let setRandamMove = Main.randomInt(0,1);
+        switch(setRandamMove){
+            case 0:
+            this.rightMove = false;
+            break;
+
+            case  1:
+            this.rightMove = true;
+            break;
+        }
+
+    }
+
+    setShape(width: number, height : number){
+        if( this.shape ){
+            GameObject.display.removeChild(this.shape);        
+        }
+
+        this.shape = new egret.Shape();
+        this.shape.anchorOffsetX += width/2;//p2とEgretは座標軸とアンカー位置が違うので調整
+        this.shape.anchorOffsetY += height/2;
+        this.shape.x = this.body.position[0] /*+ width*/;
+        this.shape.y = this.body.position[1] /*- height/2*/;
+        this.shape.graphics.beginFill(0xffbf7f);
+        this.shape.graphics.drawRect(0, 0, width , height);
+        this.shape.graphics.endFill();
+        GameObject.display.addChild(this.shape);
+        
+    }
+
+    updateContent(){
+
+        this.moveBlock();
+
+        switch(this.rightMove){//左へ移動
+            
+            case false:
+                if(this.body.position[0] <= 0){
+                    this.rightMove = true;
+                }else{
+                    this.body.position[0] -= HorizontalMoveBlock.horizontalMoveSpeed;
+                    this.shape.x = this.body.position[0];
+                }
+            break;
+
+            case true:
+                if(this.body.position[0] > CreateGameScene.width){
+                    this.rightMove = false;
+                }else{
+                    this.body.position[0] += HorizontalMoveBlock.horizontalMoveSpeed;
+                    this.shape.x = this.body.position[0];
+                }
+            break;
+        }
+
+    }
+
+}
+
+class VerticalMoveBlock extends Box{
+
+    private upMove : boolean;
+    private moveLength : number = 0;
+    static verticalMoveSpeed : number = 2;
+    static clampVerticalMoveLength : number = 200;
+
+    constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number){
+        super(boxPositionX, boxPositionY , boxWidth, boxHeight);
+        let setRandamMove = Main.randomInt(0,1);
+        switch(setRandamMove){
+            case 0:
+            this.upMove = false;
+            break;
+
+            case  1:
+            this.upMove = true;
+            break;
+        }
+
+    }
+
+    setShape(width: number, height : number){
+        if( this.shape ){
+            GameObject.display.removeChild(this.shape);        
+        }
+
+        this.shape = new egret.Shape();
+        this.shape.anchorOffsetX += width/2;//p2とEgretは座標軸とアンカー位置が違うので調整
+        this.shape.anchorOffsetY += height/2;
+        this.shape.x = this.body.position[0] /*+ width*/;
+        this.shape.y = this.body.position[1] /*- height/2*/;
+        this.shape.graphics.beginFill(0xff7f7f);
+        this.shape.graphics.drawRect(0, 0, width , height);
+        this.shape.graphics.endFill();
+        GameObject.display.addChild(this.shape);
+        
+    }
+
+    updateContent(){
+
+        this.moveBlock();
+        
+        switch(this.upMove){//下へ移動
+            
+            case false:
+                if(this.moveLength >= VerticalMoveBlock.clampVerticalMoveLength){
+                    this.upMove = true;
+                    this.moveLength = 0;
+                }else{
+                    this.body.position[1] -= VerticalMoveBlock.verticalMoveSpeed;
+                    this.shape.y = this.body.position[1];
+                    this.moveLength += VerticalMoveBlock.verticalMoveSpeed;
+                }
+            break;
+
+            case true:
+                if(this.moveLength >= VerticalMoveBlock.clampVerticalMoveLength){
+                    this.upMove = false;
+                    this.moveLength = 0;
+
+                }else{
+                    this.body.position[1] += VerticalMoveBlock.verticalMoveSpeed;
+                    this.shape.y = this.body.position[1];
+                    this.moveLength += VerticalMoveBlock.verticalMoveSpeed;
+
+                }
+            break;
+        }
+
+
+    }
+
+}

@@ -23,6 +23,12 @@ var StageLevel;
     StageLevel[StageLevel["LEVEL2"] = 2] = "LEVEL2";
     StageLevel[StageLevel["GAMEOVER"] = 3] = "GAMEOVER";
 })(StageLevel || (StageLevel = {}));
+var Block;
+(function (Block) {
+    Block[Block["NORMAL"] = 0] = "NORMAL";
+    Block[Block["HORIZONTAL_MOVE"] = 1] = "HORIZONTAL_MOVE";
+    Block[Block["VERTICAL_MOVE"] = 2] = "VERTICAL_MOVE";
+})(Block || (Block = {}));
 var Main = (function (_super) {
     __extends(Main, _super);
     function Main() {
@@ -66,11 +72,27 @@ var CreateGameScene = (function () {
         /* new メソッドを記入*/
         new CreateWorld();
         new Ball();
-        new NormalBox(CreateGameScene.width / 2, CreateGameScene.height - 10, 100, 30);
-        for (var i = 1; i < 50; i++)
-            new NormalBox(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+        new NormalBlock(CreateGameScene.width / 2, CreateGameScene.height - 10, 100, 30);
+        var randomBlock;
+        for (var i = 1; i < 50; i++) {
+            randomBlock = Main.randomInt(0, 2);
+            switch (randomBlock) {
+                case Block.NORMAL:
+                    console.log("0");
+                    new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    break;
+                case Block.HORIZONTAL_MOVE:
+                    console.log("1");
+                    new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    break;
+                case Block.VERTICAL_MOVE:
+                    console.log("2");
+                    new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    break;
+            }
+        }
     };
-    CreateGameScene.boxInterval = 100;
+    CreateGameScene.boxInterval = 80;
     return CreateGameScene;
 }());
 __reflect(CreateGameScene.prototype, "CreateGameScene");
@@ -188,7 +210,7 @@ var Ball = (function (_super) {
     };
     Ball.prototype.updateContent = function () {
         this.updateDrowShape();
-        Ball.ballPosY = this.body.position[1];
+        this.checkRise();
     };
     Ball.prototype.touchMove = function (e) {
         if (e.stageX <= this.shape.x) {
@@ -198,7 +220,18 @@ var Ball = (function (_super) {
             this.body.applyForce([500, 0], [0, 0]);
         }
     };
+    Ball.prototype.checkRise = function () {
+        Ball.ballPosY = this.body.position[1];
+        //取得したボールの高さよりも現在の方が上　→　上昇
+        if (Ball.ballPosY < this.body.position[1]) {
+            Ball.checkRiseFlag = true;
+        }
+        else {
+            Ball.checkRiseFlag = false;
+        }
+    };
     Ball.I = null; // singleton instance
+    Ball.checkRiseFlag = false;
     return Ball;
 }(GameObject));
 __reflect(Ball.prototype, "Ball");
@@ -206,12 +239,6 @@ var Box = (function (_super) {
     __extends(Box, _super);
     function Box(boxPositionX, boxPositionY, boxWidth, boxHeight) {
         var _this = _super.call(this) || this;
-        /*    updateDrowShape(){
-                this.shape.x = this.body.position[0];
-                this.shape.y = this.body.position[1];
-                GameObject.display.addChild(this.shape);
-            }*/
-        _this.a = 0;
         _this.boxPositionX = boxPositionX;
         _this.boxPositionY = boxPositionY;
         _this.boxWidth = boxWidth;
@@ -222,7 +249,6 @@ var Box = (function (_super) {
         return _this;
     }
     Box.prototype.setBody = function (x, y, width, height) {
-        //y -= height/2;
         this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.KINEMATIC });
         this.bodyShape = new p2.Box({
             width: width, height: height, collisionGroup: GraphicShape.BOX, collisionMask: GraphicShape.CIECLE | GraphicShape.PLANE, fixedRotation: true, sensor: true
@@ -239,82 +265,158 @@ var Box = (function (_super) {
         this.shape.anchorOffsetY += height / 2;
         this.shape.x = this.body.position[0] /*+ width*/;
         this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0xff0000);
+        this.shape.graphics.beginFill(0x7fff7f);
         this.shape.graphics.drawRect(0, 0, width, height);
         this.shape.graphics.endFill();
         GameObject.display.addChild(this.shape);
     };
     Box.prototype.updateContent = function () {
-        //console.log( Box.boxMove);
-        /*        this.s = Box.moveDistance;
-                this.v = Box.moveDistance/50;
-                console.log(this.a);
-                console.log(this.s);*/
-        if (this.a >= Box.moveDistance) {
-            Box.s = 0;
-            Box.v = 0;
-            this.a = 0;
-            //console.log(Box.boxMove);
-            Box.boxMove = false;
-        }
-        else {
-            this.body.position[1] += Box.v;
-            this.shape.y += Box.v;
-            this.a += Box.v;
-        }
-        if (Box.boxMove == true) {
-        }
+        this.moveBlock();
+    };
+    Box.prototype.moveBlock = function () {
+        this.body.position[1] += Box.blockdownSpeed;
+        this.shape.y += Box.blockdownSpeed;
     };
     Box.prototype.collision = function (evt) {
         var bodyA = evt.bodyA;
-        /*        const bodyB: p2.Body = evt.bodyB;*/
         var shapeA = evt.shapeA;
-        /*        const shapeB = evt.shapeB;*/
-        /*        if((shapeA.collisionGroup  == GraphicShape.BOX && shapeB.collisionGroup == GraphicShape.CIECLE)
-                || (shapeB.collisionGroup  == GraphicShape.BOX && shapeA.collisionGroup == GraphicShape.CIECLE) ){
-        
-        
-                    console.log(Ball.ballPosY);
-                    console.log(bodyA.position[1]);
-                    console.log(bodyB.position[1]);
-                    
-                    //Ball.I.body.applyForce([0,-10000],[0,0]);
-        
-        
-        
-                }*/
-        //足場よりもボールが上にあるとき
-        if (Box.boxMove == false) {
+        if (Ball.checkRiseFlag == false) {
+            //足場よりもボールが上にあるとき
             if (Ball.ballPosY < bodyA.position[1]) {
-                Box.moveDistance = Ball.finalBallPosY - bodyA.position[1];
-                console.log("a" + Ball.finalBallPosY);
-                Ball.finalBallPosY = bodyA.position[1];
-                console.log("b" + Ball.finalBallPosY);
                 Ball.I.body.applyForce([0, -10000], [0, 0]);
-                this.a = 0;
-                Box.s = 0;
-                Box.v = 0;
-                Box.s = Box.moveDistance + this.boxHeight / 2;
-                Box.v = Box.moveDistance / 20;
-                Ball.finalBallPosY += Box.s;
-                Box.boxMove = true;
-                //console.log(Box.moveDistance);
             }
         }
     };
-    Box.boxMove = false;
-    Box.moveDistance = 0;
-    Box.s = 0;
-    Box.v = 0;
+    //static boxMove : boolean = false;
+    //static moveDistance : number = 0;
+    Box.blockdownSpeed = 3;
     return Box;
 }(GameObject));
 __reflect(Box.prototype, "Box");
-var NormalBox = (function (_super) {
-    __extends(NormalBox, _super);
-    function NormalBox(boxPositionX, boxPositionY, boxWidth, boxHeight) {
+var NormalBlock = (function (_super) {
+    __extends(NormalBlock, _super);
+    function NormalBlock(boxPositionX, boxPositionY, boxWidth, boxHeight) {
         return _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
     }
-    return NormalBox;
+    return NormalBlock;
 }(Box));
-__reflect(NormalBox.prototype, "NormalBox");
+__reflect(NormalBlock.prototype, "NormalBlock");
+var HorizontalMoveBlock = (function (_super) {
+    __extends(HorizontalMoveBlock, _super);
+    function HorizontalMoveBlock(boxPositionX, boxPositionY, boxWidth, boxHeight) {
+        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
+        var setRandamMove = Main.randomInt(0, 1);
+        switch (setRandamMove) {
+            case 0:
+                _this.rightMove = false;
+                break;
+            case 1:
+                _this.rightMove = true;
+                break;
+        }
+        return _this;
+    }
+    HorizontalMoveBlock.prototype.setShape = function (width, height) {
+        if (this.shape) {
+            GameObject.display.removeChild(this.shape);
+        }
+        this.shape = new egret.Shape();
+        this.shape.anchorOffsetX += width / 2; //p2とEgretは座標軸とアンカー位置が違うので調整
+        this.shape.anchorOffsetY += height / 2;
+        this.shape.x = this.body.position[0] /*+ width*/;
+        this.shape.y = this.body.position[1] /*- height/2*/;
+        this.shape.graphics.beginFill(0xffbf7f);
+        this.shape.graphics.drawRect(0, 0, width, height);
+        this.shape.graphics.endFill();
+        GameObject.display.addChild(this.shape);
+    };
+    HorizontalMoveBlock.prototype.updateContent = function () {
+        this.moveBlock();
+        switch (this.rightMove) {
+            case false:
+                if (this.body.position[0] <= 0) {
+                    this.rightMove = true;
+                }
+                else {
+                    this.body.position[0] -= HorizontalMoveBlock.horizontalMoveSpeed;
+                    this.shape.x = this.body.position[0];
+                }
+                break;
+            case true:
+                if (this.body.position[0] > CreateGameScene.width) {
+                    this.rightMove = false;
+                }
+                else {
+                    this.body.position[0] += HorizontalMoveBlock.horizontalMoveSpeed;
+                    this.shape.x = this.body.position[0];
+                }
+                break;
+        }
+    };
+    HorizontalMoveBlock.horizontalMoveSpeed = 2;
+    return HorizontalMoveBlock;
+}(Box));
+__reflect(HorizontalMoveBlock.prototype, "HorizontalMoveBlock");
+var VerticalMoveBlock = (function (_super) {
+    __extends(VerticalMoveBlock, _super);
+    function VerticalMoveBlock(boxPositionX, boxPositionY, boxWidth, boxHeight) {
+        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
+        _this.moveLength = 0;
+        var setRandamMove = Main.randomInt(0, 1);
+        switch (setRandamMove) {
+            case 0:
+                _this.upMove = false;
+                break;
+            case 1:
+                _this.upMove = true;
+                break;
+        }
+        return _this;
+    }
+    VerticalMoveBlock.prototype.setShape = function (width, height) {
+        if (this.shape) {
+            GameObject.display.removeChild(this.shape);
+        }
+        this.shape = new egret.Shape();
+        this.shape.anchorOffsetX += width / 2; //p2とEgretは座標軸とアンカー位置が違うので調整
+        this.shape.anchorOffsetY += height / 2;
+        this.shape.x = this.body.position[0] /*+ width*/;
+        this.shape.y = this.body.position[1] /*- height/2*/;
+        this.shape.graphics.beginFill(0xff7f7f);
+        this.shape.graphics.drawRect(0, 0, width, height);
+        this.shape.graphics.endFill();
+        GameObject.display.addChild(this.shape);
+    };
+    VerticalMoveBlock.prototype.updateContent = function () {
+        this.moveBlock();
+        switch (this.upMove) {
+            case false:
+                if (this.moveLength >= VerticalMoveBlock.clampVerticalMoveLength) {
+                    this.upMove = true;
+                    this.moveLength = 0;
+                }
+                else {
+                    this.body.position[1] -= VerticalMoveBlock.verticalMoveSpeed;
+                    this.shape.y = this.body.position[1];
+                    this.moveLength += VerticalMoveBlock.verticalMoveSpeed;
+                }
+                break;
+            case true:
+                if (this.moveLength >= VerticalMoveBlock.clampVerticalMoveLength) {
+                    this.upMove = false;
+                    this.moveLength = 0;
+                }
+                else {
+                    this.body.position[1] += VerticalMoveBlock.verticalMoveSpeed;
+                    this.shape.y = this.body.position[1];
+                    this.moveLength += VerticalMoveBlock.verticalMoveSpeed;
+                }
+                break;
+        }
+    };
+    VerticalMoveBlock.verticalMoveSpeed = 2;
+    VerticalMoveBlock.clampVerticalMoveLength = 200;
+    return VerticalMoveBlock;
+}(Box));
+__reflect(VerticalMoveBlock.prototype, "VerticalMoveBlock");
 //# sourceMappingURL=Main.js.map
