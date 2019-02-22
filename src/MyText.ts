@@ -1,17 +1,17 @@
 class MyText extends GameObject{
 
-    protected myTextField : egret.TextField | null = null;
-    protected myText : string | null = null;
+    public myTextField : egret.TextField | null = null;
+    public myText : string | null = null;
 
-    protected x : number|null = 0;
-    protected y : number|null = 0;
-    protected size : number|null = 1;
-    protected ratio : number|null = 1;
-    protected color : number|null = 0x000000;
-    protected stColor : number|null =0x0000000;
-    protected stSize : number|null = 0;
-    protected font : string|null = "Meiryo";
-    protected text : string|null = "";
+    public x : number|null = 0;
+    public y : number|null = 0;
+    public size : number|null = 1;
+    public ratio : number|null = 1;
+    public color : number|null = 0x000000;
+    public stColor : number|null =0x0000000;
+    public stSize : number|null = 0;
+    public font : string|null = "Meiryo";
+    public text : string|null = "";
 
     public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
         super();
@@ -58,13 +58,80 @@ class MyText extends GameObject{
         GameObject.display.addChild(this.myTextField);
     }
 
-
-
     
     updateContent(){
-        this.updateText("Score " + Math.floor(CreateGameScene.score).toString());
+
     }
+
 
 
 }
 
+class ScoreText extends MyText{
+    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
+        super(x, y, text, size, ratio, color, font, stColor, stSize);
+
+    }
+
+    updateContent(){
+        this.updateText("Score " + Math.floor(CreateGameScene.score).toString());        
+    }
+
+}
+
+
+class GameOverText extends MyText{
+    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
+        super(x, y, text, size, ratio, color, font, stColor, stSize);
+        this.myTextField.anchorOffsetX = this.myTextField.width/2;
+        this.myTextField.anchorOffsetY = this.myTextField.height/2;
+
+    }
+
+    updateContent(){
+
+    }
+
+}
+
+class DownCeilingText extends MyText{
+
+    public deleteFlag : boolean = false;
+
+    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
+        super(x, y, text, size, ratio, color, font, stColor, stSize);
+        this.myTextField.anchorOffsetX = this.myTextField.width/2;
+        this.myTextField.anchorOffsetY = this.myTextField.height/2;
+        this.text = text;
+
+    }
+
+    updateContent(){
+        //this.myTextField.y += CreateGameScene.downCeilingLife;
+        this.updateDownText( this.y, this.text, this.deleteFlag);        
+
+    }
+
+
+    public updateDownText(y:number, text:string, deleteflag : boolean): void{
+
+        if(this.deleteFlag == true){
+            this.myTextField.text = "";
+        }else{
+        this.myTextField.y = y;
+
+        this.myTextField.textFlow = <Array<egret.ITextElement>>[ 
+            {text: text, 
+                style: {
+                    "textColor": this.color || 0x000000, "size": this.size ||1, "fontFamily": this.font ||"Meiryo", "strokeColor": this.stColor || 0x000000, "stroke": this.stSize || 0,
+                }
+            }
+        ];    
+
+        }
+        //GameObject.display.addChild(this.myTextField);        
+
+
+    }
+
+}

@@ -61,9 +61,65 @@ var MyText = (function (_super) {
         GameObject.display.addChild(this.myTextField);
     };
     MyText.prototype.updateContent = function () {
-        this.updateText("Score " + Math.floor(CreateGameScene.score).toString());
     };
     return MyText;
 }(GameObject));
 __reflect(MyText.prototype, "MyText");
+var ScoreText = (function (_super) {
+    __extends(ScoreText, _super);
+    function ScoreText(x, y, text, size, ratio, color, font, stColor, stSize) {
+        return _super.call(this, x, y, text, size, ratio, color, font, stColor, stSize) || this;
+    }
+    ScoreText.prototype.updateContent = function () {
+        this.updateText("Score " + Math.floor(CreateGameScene.score).toString());
+    };
+    return ScoreText;
+}(MyText));
+__reflect(ScoreText.prototype, "ScoreText");
+var GameOverText = (function (_super) {
+    __extends(GameOverText, _super);
+    function GameOverText(x, y, text, size, ratio, color, font, stColor, stSize) {
+        var _this = _super.call(this, x, y, text, size, ratio, color, font, stColor, stSize) || this;
+        _this.myTextField.anchorOffsetX = _this.myTextField.width / 2;
+        _this.myTextField.anchorOffsetY = _this.myTextField.height / 2;
+        return _this;
+    }
+    GameOverText.prototype.updateContent = function () {
+    };
+    return GameOverText;
+}(MyText));
+__reflect(GameOverText.prototype, "GameOverText");
+var DownCeilingText = (function (_super) {
+    __extends(DownCeilingText, _super);
+    function DownCeilingText(x, y, text, size, ratio, color, font, stColor, stSize) {
+        var _this = _super.call(this, x, y, text, size, ratio, color, font, stColor, stSize) || this;
+        _this.deleteFlag = false;
+        _this.myTextField.anchorOffsetX = _this.myTextField.width / 2;
+        _this.myTextField.anchorOffsetY = _this.myTextField.height / 2;
+        _this.text = text;
+        return _this;
+    }
+    DownCeilingText.prototype.updateContent = function () {
+        //this.myTextField.y += CreateGameScene.downCeilingLife;
+        this.updateDownText(this.y, this.text, this.deleteFlag);
+    };
+    DownCeilingText.prototype.updateDownText = function (y, text, deleteflag) {
+        if (this.deleteFlag == true) {
+            this.myTextField.text = "";
+        }
+        else {
+            this.myTextField.y = y;
+            this.myTextField.textFlow = [
+                { text: text,
+                    style: {
+                        "textColor": this.color || 0x000000, "size": this.size || 1, "fontFamily": this.font || "Meiryo", "strokeColor": this.stColor || 0x000000, "stroke": this.stSize || 0,
+                    }
+                }
+            ];
+        }
+        //GameObject.display.addChild(this.myTextField);        
+    };
+    return DownCeilingText;
+}(MyText));
+__reflect(DownCeilingText.prototype, "DownCeilingText");
 //# sourceMappingURL=MyText.js.map

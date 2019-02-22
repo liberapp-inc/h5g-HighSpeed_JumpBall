@@ -10,12 +10,13 @@ r.prototype = e.prototype, t.prototype = new r();
 };
 var Box = (function (_super) {
     __extends(Box, _super);
-    function Box(boxPositionX, boxPositionY, boxWidth, boxHeight) {
+    function Box(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
         var _this = _super.call(this) || this;
         _this.boxPositionX = boxPositionX;
         _this.boxPositionY = boxPositionY;
         _this.boxWidth = boxWidth;
         _this.boxHeight = boxHeight;
+        _this.boxColor = boxColor;
         _this.setBody(_this.boxPositionX, _this.boxPositionY, _this.boxWidth, _this.boxHeight);
         _this.setShape(_this.boxWidth, _this.boxHeight);
         CreateWorld.world.on("beginContact", _this.collision, _this);
@@ -38,13 +39,14 @@ var Box = (function (_super) {
         this.shape.anchorOffsetY += height / 2;
         this.shape.x = this.body.position[0] /*+ width*/;
         this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0x7fff7f);
+        this.shape.graphics.beginFill(this.boxColor);
         this.shape.graphics.drawRect(0, 0, width, height);
         this.shape.graphics.endFill();
         GameObject.display.addChild(this.shape);
     };
     Box.prototype.updateContent = function () {
         this.moveBlock();
+        this.gameOver();
     };
     Box.prototype.moveBlock = function () {
         if (Box.boxMove == true) {
@@ -68,7 +70,11 @@ var Box = (function (_super) {
                 Ball.I.body.applyForce([0, -10000], [0, 0]);
             }
         }
-        console.log(shapeA.collisionMask);
+    };
+    Box.prototype.gameOver = function () {
+        if (CreateGameScene.gameOverFlag == true) {
+            CreateWorld.world.off("beginContact", this.collision);
+        }
     };
     Box.boxMove = false;
     //static moveDistance : number = 0;
@@ -78,16 +84,16 @@ var Box = (function (_super) {
 __reflect(Box.prototype, "Box");
 var NormalBlock = (function (_super) {
     __extends(NormalBlock, _super);
-    function NormalBlock(boxPositionX, boxPositionY, boxWidth, boxHeight) {
-        return _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
+    function NormalBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
+        return _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
     }
     return NormalBlock;
 }(Box));
 __reflect(NormalBlock.prototype, "NormalBlock");
 var HorizontalMoveBlock = (function (_super) {
     __extends(HorizontalMoveBlock, _super);
-    function HorizontalMoveBlock(boxPositionX, boxPositionY, boxWidth, boxHeight) {
-        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
+    function HorizontalMoveBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
+        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
         var setRandamMove = Main.randomInt(0, 1);
         switch (setRandamMove) {
             case 0:
@@ -99,20 +105,6 @@ var HorizontalMoveBlock = (function (_super) {
         }
         return _this;
     }
-    HorizontalMoveBlock.prototype.setShape = function (width, height) {
-        if (this.shape) {
-            GameObject.display.removeChild(this.shape);
-        }
-        this.shape = new egret.Shape();
-        this.shape.anchorOffsetX += width / 2; //p2とEgretは座標軸とアンカー位置が違うので調整
-        this.shape.anchorOffsetY += height / 2;
-        this.shape.x = this.body.position[0] /*+ width*/;
-        this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0xffbf7f);
-        this.shape.graphics.drawRect(0, 0, width, height);
-        this.shape.graphics.endFill();
-        GameObject.display.addChild(this.shape);
-    };
     HorizontalMoveBlock.prototype.updateContent = function () {
         this.moveBlock();
         switch (this.rightMove) {
@@ -142,8 +134,8 @@ var HorizontalMoveBlock = (function (_super) {
 __reflect(HorizontalMoveBlock.prototype, "HorizontalMoveBlock");
 var VerticalMoveBlock = (function (_super) {
     __extends(VerticalMoveBlock, _super);
-    function VerticalMoveBlock(boxPositionX, boxPositionY, boxWidth, boxHeight) {
-        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight) || this;
+    function VerticalMoveBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
+        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
         _this.moveLength = 0;
         var setRandamMove = Main.randomInt(0, 1);
         switch (setRandamMove) {
@@ -156,20 +148,6 @@ var VerticalMoveBlock = (function (_super) {
         }
         return _this;
     }
-    VerticalMoveBlock.prototype.setShape = function (width, height) {
-        if (this.shape) {
-            GameObject.display.removeChild(this.shape);
-        }
-        this.shape = new egret.Shape();
-        this.shape.anchorOffsetX += width / 2; //p2とEgretは座標軸とアンカー位置が違うので調整
-        this.shape.anchorOffsetY += height / 2;
-        this.shape.x = this.body.position[0] /*+ width*/;
-        this.shape.y = this.body.position[1] /*- height/2*/;
-        this.shape.graphics.beginFill(0xff7f7f);
-        this.shape.graphics.drawRect(0, 0, width, height);
-        this.shape.graphics.endFill();
-        GameObject.display.addChild(this.shape);
-    };
     VerticalMoveBlock.prototype.updateContent = function () {
         this.moveBlock();
         switch (this.upMove) {
@@ -202,4 +180,165 @@ var VerticalMoveBlock = (function (_super) {
     return VerticalMoveBlock;
 }(Box));
 __reflect(VerticalMoveBlock.prototype, "VerticalMoveBlock");
+var CeilingBlock = (function (_super) {
+    __extends(CeilingBlock, _super);
+    function CeilingBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
+        return _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
+    }
+    CeilingBlock.prototype.setBody = function (x, y, width, height) {
+        this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
+        this.bodyShape = new p2.Box({
+            width: width, height: height, collisionGroup: GraphicShape.CEILING, collisionMask: GraphicShape.CIECLE, fixedRotation: true, sensor: false
+        });
+        this.body.addShape(this.bodyShape);
+        CreateWorld.world.addBody(this.body);
+    };
+    CeilingBlock.prototype.updateContent = function () {
+    };
+    return CeilingBlock;
+}(Box));
+__reflect(CeilingBlock.prototype, "CeilingBlock");
+var DownCeilingBlock = (function (_super) {
+    __extends(DownCeilingBlock, _super);
+    function DownCeilingBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor, life) {
+        var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
+        _this.life = 1;
+        _this.lifeText = null;
+        _this.life = life || 1;
+        _this.lifeText = new DownCeilingText(boxPositionX, boxPositionY, _this.life.toString(), 100, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 0);
+        return _this;
+    }
+    DownCeilingBlock.prototype.setBody = function (x, y, width, height) {
+        this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
+        this.bodyShape = new p2.Box({
+            width: width, height: height, collisionGroup: GraphicShape.DOWN_CEILING, collisionMask: GraphicShape.CIECLE, fixedRotation: true, sensor: false
+        });
+        this.body.addShape(this.bodyShape);
+        CreateWorld.world.addBody(this.body);
+    };
+    DownCeilingBlock.prototype.updateContent = function () {
+        this.moveBlock();
+        this.gameOver();
+    };
+    DownCeilingBlock.prototype.moveBlock = function () {
+        if (Box.boxMove == true && this.lifeText.deleteFlag == false) {
+            this.body.position[1] += DownCeilingBlock.blockdownSpeed;
+            this.shape.y += DownCeilingBlock.blockdownSpeed;
+            this.lifeText.y = this.shape.y;
+            this.lifeText.text = this.life.toString();
+        }
+    };
+    DownCeilingBlock.prototype.collision = function (evt) {
+        var bodyA = evt.bodyA;
+        var shapeA = evt.shapeA;
+        var bodyB = evt.bodyB;
+        var shapeB = evt.shapeB;
+        if (shapeB.collisionGroup == GraphicShape.CIECLE && shapeA.collisionGroup == GraphicShape.DOWN_CEILING) {
+            this.life -= 1;
+            if (this.life <= 0) {
+                CreateWorld.world.removeBody(this.body);
+                GameObject.display.removeChild(this.shape);
+                this.lifeText.deleteFlag = true;
+                this.lifeText.text = null;
+            }
+        }
+    };
+    DownCeilingBlock.prototype.gameOver = function () {
+        if (CreateGameScene.gameOverFlag == true) {
+            this.lifeText.deleteFlag = true;
+            this.lifeText.text = null;
+        }
+    };
+    DownCeilingBlock.blockdownSpeed = 0.5;
+    return DownCeilingBlock;
+}(CeilingBlock));
+__reflect(DownCeilingBlock.prototype, "DownCeilingBlock");
+var DeadBlock = (function (_super) {
+    __extends(DeadBlock, _super);
+    function DeadBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
+        return _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
+    }
+    DeadBlock.prototype.setBody = function (x, y, width, height) {
+        this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
+        this.bodyShape = new p2.Box({
+            width: width, height: height, collisionGroup: GraphicShape.DEAD_LINE, collisionMask: GraphicShape.CIECLE, fixedRotation: true, sensor: true
+        });
+        this.body.addShape(this.bodyShape);
+        CreateWorld.world.addBody(this.body);
+    };
+    DeadBlock.prototype.updateContent = function () {
+        //this.gameOver();
+    };
+    DeadBlock.prototype.collision = function (evt) {
+        var _this = this;
+        var bodyA = evt.bodyA;
+        var shapeA = evt.shapeA;
+        var bodyB = evt.bodyB;
+        var shapeB = evt.shapeB;
+        if (shapeB.collisionGroup == GraphicShape.CIECLE && shapeA.collisionGroup == GraphicShape.DEAD_LINE) {
+            CreateGameScene.gameOverFlag = true;
+            //ゲームオーバーの表示
+            if (CreateGameScene.gameOverText == null) {
+                CreateGameScene.gameOverText = [];
+                CreateGameScene.gameOverText[0] = new GameOverText(CreateGameScene.width / 2, CreateGameScene.height / 2 - 50, "GAME OVER", 180, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 2);
+                CreateGameScene.gameOverText[1] = new GameOverText(CreateGameScene.width / 2, CreateGameScene.height / 2 + 50, "Score " + Math.floor(CreateGameScene.score).toString(), 120, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 2);
+            }
+            GameObject.display.stage.once(egret.TouchEvent.TOUCH_BEGIN, function (e) { return _this.retry(e); }, this);
+        }
+    };
+    /*    gameOver(){
+            if(CreateGameScene.gameOverFlag == true){
+                CreateWorld.world.off("beginContact",  this.collision);
+    
+            }
+        }*/
+    DeadBlock.prototype.retry = function (e) {
+        CreateGameScene.init();
+    };
+    return DeadBlock;
+}(Box));
+__reflect(DeadBlock.prototype, "DeadBlock");
+var WallBlock = (function (_super) {
+    __extends(WallBlock, _super);
+    function WallBlock(boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) {
+        var _this = _super.call(this) || this;
+        _this.boxPositionX = boxPositionX;
+        _this.boxPositionY = boxPositionY;
+        _this.boxWidth = boxWidth;
+        _this.boxHeight = boxHeight;
+        _this.boxColor = boxColor;
+        _this.setBody(_this.boxPositionX, _this.boxPositionY, _this.boxWidth, _this.boxHeight);
+        _this.setShape(_this.boxWidth, _this.boxHeight);
+        return _this;
+    }
+    WallBlock.prototype.setBody = function (x, y, width, height) {
+        this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
+        this.bodyShape = new p2.Box({
+            width: width, height: height, collisionGroup: GraphicShape.WALL, collisionMask: GraphicShape.CIECLE, fixedRotation: true, sensor: false
+        });
+        this.body.addShape(this.bodyShape);
+        CreateWorld.world.addBody(this.body);
+    };
+    WallBlock.prototype.setShape = function (width, height) {
+        if (this.shape) {
+            GameObject.display.removeChild(this.shape);
+        }
+        this.shape = new egret.Shape();
+        this.shape.anchorOffsetX += width / 2; //p2とEgretは座標軸とアンカー位置が違うので調整
+        this.shape.anchorOffsetY += height / 2;
+        this.shape.x = this.body.position[0] /*+ width*/;
+        this.shape.y = this.body.position[1] /*- height/2*/;
+        this.shape.graphics.beginFill(this.boxColor);
+        this.shape.graphics.drawRect(0, 0, width, height);
+        this.shape.graphics.endFill();
+        GameObject.display.addChild(this.shape);
+    };
+    WallBlock.prototype.updateContent = function () {
+    };
+    WallBlock.boxMove = false;
+    //static moveDistance : number = 0;
+    WallBlock.blockdownSpeed = 3;
+    return WallBlock;
+}(GameObject));
+__reflect(WallBlock.prototype, "WallBlock");
 //# sourceMappingURL=Box.js.map

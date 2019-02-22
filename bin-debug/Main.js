@@ -15,7 +15,9 @@ var GraphicShape;
     GraphicShape[GraphicShape["CIECLE"] = Math.pow(2, 1)] = "CIECLE";
     GraphicShape[GraphicShape["BOX"] = Math.pow(2, 2)] = "BOX";
     GraphicShape[GraphicShape["CEILING"] = Math.pow(2, 3)] = "CEILING";
-    GraphicShape[GraphicShape["DEAD_LINE"] = Math.pow(2, 4)] = "DEAD_LINE";
+    GraphicShape[GraphicShape["DOWN_CEILING"] = Math.pow(2, 4)] = "DOWN_CEILING";
+    GraphicShape[GraphicShape["WALL"] = Math.pow(2, 5)] = "WALL";
+    GraphicShape[GraphicShape["DEAD_LINE"] = Math.pow(2, 6)] = "DEAD_LINE";
 })(GraphicShape || (GraphicShape = {}));
 var StageLevel;
 (function (StageLevel) {
@@ -40,14 +42,16 @@ var Main = (function (_super) {
     Main.prototype.addToStage = function () {
         GameObject.initial(this.stage);
         CreateGameScene.init();
-        egret.startTick(this.tickLoop, this);
+        //egret.startTick(this.tickLoop, this);
     };
-    Main.prototype.tickLoop = function (timeStamp) {
-        if (timeStamp === void 0) { timeStamp = Main.timeStamp; }
-        GameObject.update();
-        CreateWorld.worldBegin(timeStamp);
-        return false;
-    };
+    /*    tickLoop(timeStamp:number = Main.timeStamp):boolean{
+            GameObject.update();
+            CreateWorld.worldBegin(timeStamp);
+            if(CreateGameScene.gameOverFlag == true){
+                egret.stopTick(this.tickLoop, this);
+            }
+            return false;
+        }*/
     Main.random = function (min, max) {
         return min + Math.random() * (max - min);
     };
@@ -70,33 +74,59 @@ var CreateGameScene = (function () {
     CreateGameScene.init = function () {
         this.height = egret.MainContext.instance.stage.stageHeight;
         this.width = egret.MainContext.instance.stage.stageWidth;
+        this.score = 0;
+        this.boxInterval = 80;
+        this.gameOverFlag = false;
+        Box.boxMove = false;
+        this.gameOverText = null;
+        CreateGameScene.downCeilingLife = 1;
+        egret.startTick(this.tickLoop, this);
         /* new メソッドを記入*/
         new Background();
         new CreateWorld();
-        new Wall();
-        new MyText(0, 0, "Score " + Math.floor(CreateGameScene.score).toString(), 100, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 0);
+        new CeilingBlock(CreateGameScene.width / 2, 80, CreateGameScene.width, 50, 0x7f7fff); //天井
+        var wall = new WallBlock(0, CreateGameScene.height / 2, 50, CreateGameScene.height, 0x7f7fff); //左の壁
+        var wall2 = new WallBlock(CreateGameScene.width, CreateGameScene.height / 2, 50, CreateGameScene.height, 0x7f7fff); //右の壁
+        wall2.body.angle = Math.PI;
+        new CreateDownCeilingBlock();
+        new DeadBlock(CreateGameScene.width / 2, CreateGameScene.height, CreateGameScene.width, 20, 0xff0000);
+        if (this.scoreText == null) {
+            this.scoreText = new ScoreText(0, 0, "Score " + Math.floor(CreateGameScene.score).toString(), 100, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 0);
+        }
         new Ball();
-        new NormalBlock(CreateGameScene.width / 2, CreateGameScene.height - 10, 100, 30);
+        new NormalBlock(CreateGameScene.width / 2, CreateGameScene.height - 10, 100, 30, 0x7fff7f);
         var randomBlock;
         var initialArangeBox = this.height / this.boxInterval;
-        console.log(Math.floor(initialArangeBox));
         for (var i = 1; i < initialArangeBox; i++) {
             randomBlock = Main.randomInt(0, 2);
             switch (randomBlock) {
                 case Block.NORMAL:
-                    new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30, 0x7fff7f);
                     break;
                 case Block.HORIZONTAL_MOVE:
-                    new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30, 0xffbf7f);
                     break;
                 case Block.VERTICAL_MOVE:
-                    new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
+                    new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30, 0xff7f7f);
                     break;
             }
         }
     };
+    CreateGameScene.tickLoop = function (timeStamp) {
+        if (timeStamp === void 0) { timeStamp = Main.timeStamp; }
+        GameObject.update();
+        CreateWorld.worldBegin(timeStamp);
+        if (CreateGameScene.gameOverFlag == true) {
+            egret.stopTick(this.tickLoop, this);
+        }
+        return false;
+    };
     CreateGameScene.boxInterval = 80;
     CreateGameScene.score = 0;
+    CreateGameScene.scoreText = null;
+    CreateGameScene.gameOverFlag = false;
+    CreateGameScene.gameOverText = null;
+    CreateGameScene.downCeilingLife = 1;
     return CreateGameScene;
 }());
 __reflect(CreateGameScene.prototype, "CreateGameScene");
@@ -119,13 +149,39 @@ var GameObject = (function () {
     return GameObject;
 }());
 __reflect(GameObject.prototype, "GameObject");
+var CreateDownCeilingBlock = (function (_super) {
+    __extends(CreateDownCeilingBlock, _super);
+    function CreateDownCeilingBlock() {
+        var _this = _super.call(this) || this;
+        _this.life = 1;
+        _this.score = 0;
+        _this.block = new DownCeilingBlock(CreateGameScene.width / 2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);
+        _this.createBlock();
+        return _this;
+    }
+    CreateDownCeilingBlock.prototype.createBlock = function () {
+        this.score += Box.blockdownSpeed;
+        if (this.block.life <= 0) {
+            var b = new DownCeilingBlock(CreateGameScene.width / 2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);
+            this.block = b;
+            //this.block.push(b);
+            //this.score = 0;
+            CreateGameScene.downCeilingLife += 1;
+        }
+    };
+    CreateDownCeilingBlock.prototype.updateContent = function () {
+        this.createBlock();
+    };
+    return CreateDownCeilingBlock;
+}(GameObject));
+__reflect(CreateDownCeilingBlock.prototype, "CreateDownCeilingBlock");
 var CreateWorld = (function (_super) {
     __extends(CreateWorld, _super);
     function CreateWorld() {
         var _this = _super.call(this) || this;
         _this.createWorld();
-        _this.createWall();
         return _this;
+        //this.createWall();
         //egret.startTick(CreateWorld.worldBegin, this);
     }
     CreateWorld.prototype.createWorld = function () {
@@ -189,11 +245,10 @@ var Wall = (function (_super) {
         return _this;
     }
     Wall.prototype.createWall = function () {
-        this.body = new p2.Body({ mass: 1, position: [CreateGameScene.width / 2, 200], fixedRotation: true, type: p2.Body.STATIC });
+        this.body = new p2.Body({ mass: 1, position: [CreateGameScene.width, 300], fixedRotation: true, type: p2.Body.STATIC });
         this.bodyShape = new p2.Box({
-            whidth: CreateGameScene.width, height: this.ceilingHeight, collisionGroup: GraphicShape.CEILING, collisionMask: GraphicShape.CIECLE, sensor: false
+            whidth: CreateGameScene.width, height: this.ceilingHeight, collisionGroup: GraphicShape.CEILING, collisionMask: GraphicShape.CIECLE,
         });
-        //ceilingBody.position=  [CreateGameScene.width/2, CreateGameScene.height-100];
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
         this.setShape(CreateGameScene.width, this.ceilingHeight);

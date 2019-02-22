@@ -25,7 +25,7 @@ class Ball extends GameObject{
 
         this.body = new p2.Body({mass : 1, position:[x,y]});
         this.bodyShape = new p2.Circle({
-            radius : radius, collisionGroup: GraphicShape.CIECLE, collisionMask:GraphicShape.BOX | GraphicShape.CEILING | GraphicShape.DEAD_LINE, fixedRotation:true
+            radius : radius, collisionGroup: GraphicShape.CIECLE, collisionMask:GraphicShape.BOX | GraphicShape.CEILING | GraphicShape.DEAD_LINE | GraphicShape.DOWN_CEILING | GraphicShape.WALL, fixedRotation:true
         });
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
@@ -57,16 +57,23 @@ class Ball extends GameObject{
     updateContent(){
         this.updateDrowShape();
         this.checkRise();
-        CreateGameScene.score += Box.blockdownSpeed;
+        if(CreateGameScene.gameOverFlag == false){
+            CreateGameScene.score += Box.blockdownSpeed;
+
+        }
+        this.gameOver();
+
+        
     }
 
     touchMove(e:egret.TouchEvent){
         
-        if(e.stageX <= this.shape.x){
+        if(e.stageX <= this.shape.x && this.shape.x > 80){
             
             this.body.applyForce([-500,0],[0,0]);
         }
-        else{
+        else if(e.stageX > this.shape.x && this.shape.x < CreateGameScene.width - 80)
+        {
             this.body.applyForce([500, 0],[0,0]);
 
         }
@@ -84,7 +91,12 @@ class Ball extends GameObject{
 
         }
 
+    }
+    gameOver(){
+        if(CreateGameScene.gameOverFlag == true){
+            Ball.I =null;
 
+        }
     }
 
 }

@@ -24,7 +24,7 @@ var Ball = (function (_super) {
     Ball.prototype.setBody = function (x, y, radius) {
         this.body = new p2.Body({ mass: 1, position: [x, y] });
         this.bodyShape = new p2.Circle({
-            radius: radius, collisionGroup: GraphicShape.CIECLE, collisionMask: GraphicShape.BOX | GraphicShape.CEILING | GraphicShape.DEAD_LINE, fixedRotation: true
+            radius: radius, collisionGroup: GraphicShape.CIECLE, collisionMask: GraphicShape.BOX | GraphicShape.CEILING | GraphicShape.DEAD_LINE | GraphicShape.DOWN_CEILING | GraphicShape.WALL, fixedRotation: true
         });
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
@@ -49,13 +49,16 @@ var Ball = (function (_super) {
     Ball.prototype.updateContent = function () {
         this.updateDrowShape();
         this.checkRise();
-        CreateGameScene.score += Box.blockdownSpeed;
+        if (CreateGameScene.gameOverFlag == false) {
+            CreateGameScene.score += Box.blockdownSpeed;
+        }
+        this.gameOver();
     };
     Ball.prototype.touchMove = function (e) {
-        if (e.stageX <= this.shape.x) {
+        if (e.stageX <= this.shape.x && this.shape.x > 80) {
             this.body.applyForce([-500, 0], [0, 0]);
         }
-        else {
+        else if (e.stageX > this.shape.x && this.shape.x < CreateGameScene.width - 80) {
             this.body.applyForce([500, 0], [0, 0]);
         }
     };
@@ -67,6 +70,11 @@ var Ball = (function (_super) {
         }
         else {
             Ball.checkRiseFlag = false;
+        }
+    };
+    Ball.prototype.gameOver = function () {
+        if (CreateGameScene.gameOverFlag == true) {
+            Ball.I = null;
         }
     };
     Ball.I = null; // singleton instance

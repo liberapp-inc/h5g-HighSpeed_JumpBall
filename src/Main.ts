@@ -4,7 +4,9 @@ enum GraphicShape{
     CIECLE = Math.pow(2,1),
     BOX = Math.pow(2,2),
     CEILING = Math.pow(2,3),
-    DEAD_LINE = Math.pow(2,4),
+    DOWN_CEILING= Math.pow(2,4),
+    WALL= Math.pow(2,5),
+    DEAD_LINE = Math.pow(2,6),
 }
 
 enum StageLevel{
@@ -33,15 +35,18 @@ class Main extends eui.UILayer {
     private addToStage() {
         GameObject.initial( this.stage );
         CreateGameScene.init();
-        egret.startTick(this.tickLoop, this);
+        //egret.startTick(this.tickLoop, this);
        
     }
 
-    tickLoop(timeStamp:number = Main.timeStamp):boolean{
+/*    tickLoop(timeStamp:number = Main.timeStamp):boolean{
         GameObject.update();
         CreateWorld.worldBegin(timeStamp);
+        if(CreateGameScene.gameOverFlag == true){
+            egret.stopTick(this.tickLoop, this);
+        }
         return false;
-    }
+    }*/
 
     static random(min:number, max:number):number {
         return min + Math.random() * (max - min);
@@ -66,51 +71,79 @@ class CreateGameScene{
     static width: number;
     static boxInterval :number = 80;
     static score :number = 0;
+    static scoreText : ScoreText | null = null;
+    static gameOverFlag :boolean = false;
+    static gameOverText : GameOverText[] | null = null;
+    static downCeilingLife : number = 1;
+    
 
     
     static init() {
         this.height = egret.MainContext.instance.stage.stageHeight;
         this.width  = egret.MainContext.instance.stage.stageWidth;
+        this.score = 0;
+        this.boxInterval = 80;
+        this.gameOverFlag = false;
+        Box.boxMove = false;
+        this.gameOverText = null;
+        CreateGameScene.downCeilingLife = 1;
+        egret.startTick(this.tickLoop, this);
         
         /* new メソッドを記入*/
         new Background();
         new CreateWorld();
-        new Wall();
-        new MyText(0,0,"Score " + Math.floor(CreateGameScene.score).toString(),100, 0.5,0xFFFFFF,"Meiryo",0x000000, 0);
+        new CeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff);//天井
+        const wall : WallBlock = new WallBlock(0, CreateGameScene.height/2, 50, CreateGameScene.height, 0x7f7fff);//左の壁
+        const wall2 : WallBlock = new WallBlock(CreateGameScene.width, CreateGameScene.height/2, 50, CreateGameScene.height, 0x7f7fff);//右の壁
+        wall2.body.angle = Math.PI;
+        new CreateDownCeilingBlock();
+        new DeadBlock(CreateGameScene.width/2, CreateGameScene.height, CreateGameScene.width, 20, 0xff0000);
+        if(this.scoreText == null){
+            this.scoreText = new ScoreText(0,0,"Score " + Math.floor(CreateGameScene.score).toString(),100, 0.5,0xFFFFFF,"Meiryo",0x000000, 0);
+        }
         new Ball();
-        new NormalBlock(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30);
+        new NormalBlock(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30, 0x7fff7f);
         
         let randomBlock : number;
 
-        let initialArangeBox :number = this.height/this.boxInterval;
-        console.log(Math.floor(initialArangeBox));
+        let initialArangeBox :number = this.height/this.boxInterval;       
+
+        for(let i = 1; i < initialArangeBox; i++){
         
+            randomBlock = Main.randomInt(0,2);
 
+            switch(randomBlock){
 
-            for(let i = 1; i < initialArangeBox; i++){
-            
-                randomBlock = Main.randomInt(0,2);
+                case Block.NORMAL:
+                new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30, 0x7fff7f);
+                
 
-                switch(randomBlock){
+                break;
 
-                    case Block.NORMAL:
-                    new NormalBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
-                    
+                case Block.HORIZONTAL_MOVE:
+                new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30, 0xffbf7f);
+                break;
 
-                    break;
-
-                    case Block.HORIZONTAL_MOVE:
-                    new HorizontalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
-                    break;
-
-                    case Block.VERTICAL_MOVE:
-                    new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30);
-                    break;
-
-                }
+                case Block.VERTICAL_MOVE:
+                new VerticalMoveBlock(Main.random(0, CreateGameScene.width), -CreateGameScene.boxInterval * i + CreateGameScene.height, 100, 30, 0xff7f7f);
+                break;
 
             }
+
         }
+
+
+
+    }
+        
+    static tickLoop(timeStamp:number = Main.timeStamp):boolean{
+        GameObject.update();
+        CreateWorld.worldBegin(timeStamp);
+        if(CreateGameScene.gameOverFlag == true){
+            egret.stopTick(this.tickLoop, this);
+        }
+        return false;
+    }
 
 
 }
@@ -146,13 +179,43 @@ abstract class GameObject {
 
 }
 
+class CreateDownCeilingBlock extends GameObject{
+
+    public block : DownCeilingBlock;
+    private life : number = 1;
+
+    public score : number = 0;
+    constructor(){
+        super();
+        this.block = new DownCeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);
+
+        this.createBlock();
+    }
+
+    createBlock(){
+        this.score += Box.blockdownSpeed;
+        if(this.block.life <= 0){
+            let b = new DownCeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);
+            this.block = b;
+            //this.block.push(b);
+            //this.score = 0;
+            CreateGameScene.downCeilingLife +=1;
+        }
+    }
+
+    updateContent(){
+        this.createBlock();
+    }
+    
+}
+
 
 class CreateWorld extends GameObject{
     static world : p2.World = null;
     constructor(){
         super();
         this.createWorld();
-        this.createWall();
+        //this.createWall();
         //egret.startTick(CreateWorld.worldBegin, this);
     }
 
@@ -232,11 +295,10 @@ class Wall extends GameObject{
     }
 
     createWall(){
-        this.body =  new p2.Body({mass : 1, position:[CreateGameScene.width/2,200], fixedRotation:true ,type:p2.Body.STATIC});
+        this.body =  new p2.Body({mass : 1, position:[CreateGameScene.width,300], fixedRotation:true ,type:p2.Body.STATIC});
         this.bodyShape = new p2.Box({
             whidth:CreateGameScene.width, height : this.ceilingHeight, collisionGroup: GraphicShape.CEILING, collisionMask:GraphicShape.CIECLE,
         });
-        //ceilingBody.position=  [CreateGameScene.width/2, CreateGameScene.height-100];
         this.body.addShape(this.bodyShape);
         CreateWorld.world.addBody(this.body);
 
@@ -264,6 +326,7 @@ class Wall extends GameObject{
 
         
     }
+    
 
 }
 
