@@ -1,65 +1,26 @@
-class MyText extends GameObject{
+class ScoreText extends GameObject{
 
+    static I : ScoreText = null;
     public myTextField : egret.TextField | null = null;
     public myText : string | null = null;
 
-    public x : number|null = 0;
-    public y : number|null = 0;
-    public size : number|null = 1;
-    public ratio : number|null = 1;
-    public color : number|null = 0x000000;
-    public stColor : number|null =0x0000000;
-    public stSize : number|null = 0;
-    public font : string|null = "Meiryo";
-    public text : string|null = "";
 
-    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
+
+    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, bold :boolean){
         super();
-        this.newText(x, y, text, size, ratio, color, font, stColor, stSize);
-        this.x = x;
-        this.y = y;
-        this.text = text;
-        this.size = size;
-        this.ratio = ratio;
-        this.color= color;
-        this.font = font;
-        this.stColor = stColor;
-        this.stSize = stSize;
-    }
-
-    protected newText(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number): void {
-        
-        this.myTextField = new egret.TextField();
-        this.myTextField.x = x || 0;
-        this.myTextField.y = y || 0;
-
-        this.myTextField.scaleX = ratio || 1;
-        this.myTextField.scaleY = ratio || 1;
-        this.myTextField.textFlow = <Array<egret.ITextElement>>[ 
-            {text: text, 
-                style: {
-                    "textColor": color || 0x000000, "size": size ||1, "fontFamily": font ||"Meiryo", "strokeColor": stColor || 0x000000, "stroke": stSize || 0,
-                }
-            }
-        ];    
-        GameObject.display.addChild(this.myTextField);
+        ScoreText.I = this;
+        this.myTextField = Main.newTextField(x, y, text, size, ratio, color, bold);
+        GameObject.display.addChild( this.myTextField );
 
     }
 
-    protected updateText(text:string): void{
-
-        this.myTextField.textFlow = <Array<egret.ITextElement>>[ 
-            {text: text, 
-                style: {
-                    "textColor": this.color || 0x000000, "size": this.size ||1, "fontFamily": this.font ||"Meiryo", "strokeColor": this.stColor || 0x000000, "stroke": this.stSize || 0,
-                }
-            }
-        ];    
-        GameObject.display.addChild(this.myTextField);
+    onDestroy() {
+        GameObject.display.removeChild( this.myTextField );
+        this.myTextField = null;
     }
 
-    
     updateContent(){
+        this.myTextField.text = "SCORE : " + Math.floor(CreateGameScene.score).toString();
 
     }
 
@@ -67,70 +28,75 @@ class MyText extends GameObject{
 
 }
 
-class ScoreText extends MyText{
-    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
-        super(x, y, text, size, ratio, color, font, stColor, stSize);
 
-    }
+class GameOverText extends GameObject{
+    //static I : ScoreText = null;
+    public myTextField : egret.TextField | null = null;
+    public myText : string | null = null;
 
-    updateContent(){
-        this.updateText("Score " + Math.floor(CreateGameScene.score).toString());        
-    }
-
-}
-
-
-class GameOverText extends MyText{
-    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
-        super(x, y, text, size, ratio, color, font, stColor, stSize);
+    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, bold : boolean){
+        super();
+        this.myTextField = Main.newTextField(x, y, text, size, ratio, color, bold);
+        GameObject.display.addChild( this.myTextField );
         this.myTextField.anchorOffsetX = this.myTextField.width/2;
         this.myTextField.anchorOffsetY = this.myTextField.height/2;
 
+
     }
+
+
+    onDestroy() {
+        GameObject.display.removeChild( this.myTextField );
+        this.myTextField = null;
+    }
+
 
     updateContent(){
+        //this.myTextField.text = "SCORE : " + Math.floor(CreateGameScene.score).toString();
 
     }
+
 
 }
 
-class DownCeilingText extends MyText{
-
+class DownCeilingText extends GameObject{
+    public myTextField : egret.TextField | null = null;
+    public myText : string | null = null;
     public deleteFlag : boolean = false;
+    public y :number;
 
-    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number, font:string, stColor:number, stSize:number){
-        super(x, y, text, size, ratio, color, font, stColor, stSize);
+
+
+    public constructor(x:number, y:number, text:string, size:number, ratio:number, color:number,bold : boolean){
+        super();
+        this.myTextField = Main.newTextField(x, y, text, size, ratio, color, bold);
+        GameObject.display.addChild( this.myTextField );
         this.myTextField.anchorOffsetX = this.myTextField.width/2;
         this.myTextField.anchorOffsetY = this.myTextField.height/2;
-        this.text = text;
+        this.myText = text;
+        this.y=y;
 
     }
 
     updateContent(){
         //this.myTextField.y += CreateGameScene.downCeilingLife;
-        this.updateDownText( this.y, this.text, this.deleteFlag);        
+        this.updateDownText( this.y, this.myText, this.deleteFlag);        
 
     }
 
-
+    onDestroy() {
+        GameObject.display.removeChild( this.myTextField );
+        this.myTextField = null;
+    }
+    
     public updateDownText(y:number, text:string, deleteflag : boolean): void{
 
         if(this.deleteFlag == true){
             this.myTextField.text = "";
         }else{
-        this.myTextField.y = y;
-
-        this.myTextField.textFlow = <Array<egret.ITextElement>>[ 
-            {text: text, 
-                style: {
-                    "textColor": this.color || 0x000000, "size": this.size ||1, "fontFamily": this.font ||"Meiryo", "strokeColor": this.stColor || 0x000000, "stroke": this.stSize || 0,
-                }
-            }
-        ];    
-
+            this.myTextField.y = y;
+            this.myTextField.text = text;
         }
-        //GameObject.display.addChild(this.myTextField);        
-
 
     }
 

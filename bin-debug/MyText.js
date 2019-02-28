@@ -8,100 +8,73 @@ var __extends = this && this.__extends || function __extends(t, e) {
 for (var i in e) e.hasOwnProperty(i) && (t[i] = e[i]);
 r.prototype = e.prototype, t.prototype = new r();
 };
-var MyText = (function (_super) {
-    __extends(MyText, _super);
-    function MyText(x, y, text, size, ratio, color, font, stColor, stSize) {
+var ScoreText = (function (_super) {
+    __extends(ScoreText, _super);
+    function ScoreText(x, y, text, size, ratio, color, bold) {
         var _this = _super.call(this) || this;
         _this.myTextField = null;
         _this.myText = null;
-        _this.x = 0;
-        _this.y = 0;
-        _this.size = 1;
-        _this.ratio = 1;
-        _this.color = 0x000000;
-        _this.stColor = 0x0000000;
-        _this.stSize = 0;
-        _this.font = "Meiryo";
-        _this.text = "";
-        _this.newText(x, y, text, size, ratio, color, font, stColor, stSize);
-        _this.x = x;
-        _this.y = y;
-        _this.text = text;
-        _this.size = size;
-        _this.ratio = ratio;
-        _this.color = color;
-        _this.font = font;
-        _this.stColor = stColor;
-        _this.stSize = stSize;
+        ScoreText.I = _this;
+        _this.myTextField = Main.newTextField(x, y, text, size, ratio, color, bold);
+        GameObject.display.addChild(_this.myTextField);
         return _this;
     }
-    MyText.prototype.newText = function (x, y, text, size, ratio, color, font, stColor, stSize) {
-        this.myTextField = new egret.TextField();
-        this.myTextField.x = x || 0;
-        this.myTextField.y = y || 0;
-        this.myTextField.scaleX = ratio || 1;
-        this.myTextField.scaleY = ratio || 1;
-        this.myTextField.textFlow = [
-            { text: text,
-                style: {
-                    "textColor": color || 0x000000, "size": size || 1, "fontFamily": font || "Meiryo", "strokeColor": stColor || 0x000000, "stroke": stSize || 0,
-                }
-            }
-        ];
-        GameObject.display.addChild(this.myTextField);
+    ScoreText.prototype.onDestroy = function () {
+        GameObject.display.removeChild(this.myTextField);
+        this.myTextField = null;
     };
-    MyText.prototype.updateText = function (text) {
-        this.myTextField.textFlow = [
-            { text: text,
-                style: {
-                    "textColor": this.color || 0x000000, "size": this.size || 1, "fontFamily": this.font || "Meiryo", "strokeColor": this.stColor || 0x000000, "stroke": this.stSize || 0,
-                }
-            }
-        ];
-        GameObject.display.addChild(this.myTextField);
-    };
-    MyText.prototype.updateContent = function () {
-    };
-    return MyText;
-}(GameObject));
-__reflect(MyText.prototype, "MyText");
-var ScoreText = (function (_super) {
-    __extends(ScoreText, _super);
-    function ScoreText(x, y, text, size, ratio, color, font, stColor, stSize) {
-        return _super.call(this, x, y, text, size, ratio, color, font, stColor, stSize) || this;
-    }
     ScoreText.prototype.updateContent = function () {
-        this.updateText("Score " + Math.floor(CreateGameScene.score).toString());
+        this.myTextField.text = "SCORE : " + Math.floor(CreateGameScene.score).toString();
     };
+    ScoreText.I = null;
     return ScoreText;
-}(MyText));
+}(GameObject));
 __reflect(ScoreText.prototype, "ScoreText");
 var GameOverText = (function (_super) {
     __extends(GameOverText, _super);
-    function GameOverText(x, y, text, size, ratio, color, font, stColor, stSize) {
-        var _this = _super.call(this, x, y, text, size, ratio, color, font, stColor, stSize) || this;
+    function GameOverText(x, y, text, size, ratio, color, bold) {
+        var _this = _super.call(this) || this;
+        //static I : ScoreText = null;
+        _this.myTextField = null;
+        _this.myText = null;
+        _this.myTextField = Main.newTextField(x, y, text, size, ratio, color, bold);
+        GameObject.display.addChild(_this.myTextField);
         _this.myTextField.anchorOffsetX = _this.myTextField.width / 2;
         _this.myTextField.anchorOffsetY = _this.myTextField.height / 2;
         return _this;
     }
+    GameOverText.prototype.onDestroy = function () {
+        GameObject.display.removeChild(this.myTextField);
+        this.myTextField = null;
+    };
     GameOverText.prototype.updateContent = function () {
+        //this.myTextField.text = "SCORE : " + Math.floor(CreateGameScene.score).toString();
     };
     return GameOverText;
-}(MyText));
+}(GameObject));
 __reflect(GameOverText.prototype, "GameOverText");
 var DownCeilingText = (function (_super) {
     __extends(DownCeilingText, _super);
-    function DownCeilingText(x, y, text, size, ratio, color, font, stColor, stSize) {
-        var _this = _super.call(this, x, y, text, size, ratio, color, font, stColor, stSize) || this;
+    function DownCeilingText(x, y, text, size, ratio, color, bold) {
+        var _this = _super.call(this) || this;
+        _this.myTextField = null;
+        _this.myText = null;
         _this.deleteFlag = false;
+        _this.myTextField = Main.newTextField(x, y, text, size, ratio, color, bold);
+        GameObject.display.addChild(_this.myTextField);
         _this.myTextField.anchorOffsetX = _this.myTextField.width / 2;
         _this.myTextField.anchorOffsetY = _this.myTextField.height / 2;
-        _this.text = text;
+        _this.myText = text;
+        _this.y = y;
         return _this;
     }
     DownCeilingText.prototype.updateContent = function () {
         //this.myTextField.y += CreateGameScene.downCeilingLife;
-        this.updateDownText(this.y, this.text, this.deleteFlag);
+        this.updateDownText(this.y, this.myText, this.deleteFlag);
+    };
+    DownCeilingText.prototype.onDestroy = function () {
+        GameObject.display.removeChild(this.myTextField);
+        this.myTextField = null;
     };
     DownCeilingText.prototype.updateDownText = function (y, text, deleteflag) {
         if (this.deleteFlag == true) {
@@ -109,17 +82,10 @@ var DownCeilingText = (function (_super) {
         }
         else {
             this.myTextField.y = y;
-            this.myTextField.textFlow = [
-                { text: text,
-                    style: {
-                        "textColor": this.color || 0x000000, "size": this.size || 1, "fontFamily": this.font || "Meiryo", "strokeColor": this.stColor || 0x000000, "stroke": this.stSize || 0,
-                    }
-                }
-            ];
+            this.myTextField.text = text;
         }
-        //GameObject.display.addChild(this.myTextField);        
     };
     return DownCeilingText;
-}(MyText));
+}(GameObject));
 __reflect(DownCeilingText.prototype, "DownCeilingText");
 //# sourceMappingURL=MyText.js.map

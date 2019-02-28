@@ -4,6 +4,7 @@ class Ball extends GameObject{
     static ballPosY : number;
     static finalBallPosY : number ;
     static checkRiseFlag : boolean = false;
+    static collisionFlag : boolean = false;
 
     radius:number = 20;
 
@@ -16,8 +17,10 @@ class Ball extends GameObject{
         this.setShape(this.radius);
         Ball.ballPosY = this.body.position[1];
         Ball.finalBallPosY =  CreateGameScene.height-100;
-        
-        GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => this.touchMove(e), this);
+        if(GameObject.display.hasEventListener(egret.TouchEvent.TOUCH_BEGIN) == false){
+            
+            GameObject.display.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => Ball.touchMove(e), false);
+        }
 
     }
 
@@ -66,15 +69,15 @@ class Ball extends GameObject{
         
     }
 
-    touchMove(e:egret.TouchEvent){
+    static touchMove(e:egret.TouchEvent){
         
-        if(e.stageX <= this.shape.x && this.shape.x > 80){
+        if(e.stageX <= Ball.I.shape.x && Ball.I.shape.x > 80){
             
-            this.body.applyForce([-500,0],[0,0]);
+            Ball.I.body.applyForce([-2000,0],[0,0]);
         }
-        else if(e.stageX > this.shape.x && this.shape.x < CreateGameScene.width - 80)
+        else if(e.stageX > Ball.I.shape.x && Ball.I.shape.x < CreateGameScene.width - 80)
         {
-            this.body.applyForce([500, 0],[0,0]);
+           Ball.I.body.applyForce([2000, 0],[0,0]);
 
         }
         
@@ -94,8 +97,12 @@ class Ball extends GameObject{
     }
     gameOver(){
         if(CreateGameScene.gameOverFlag == true){
-            Ball.I =null;
+/*        console.log(GameObject.display.hasEventListener(egret.TouchEvent.TOUCH_BEGIN));
+            GameObject.display.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => Ball.touchMove(e), false);
+        console.log(GameObject.display.hasEventListener(egret.TouchEvent.TOUCH_BEGIN));*/
 
+            Ball.I =null;
+            //this.destroy();
         }
     }
 

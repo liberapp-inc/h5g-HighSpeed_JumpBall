@@ -18,7 +18,9 @@ var Ball = (function (_super) {
         _this.setShape(_this.radius);
         Ball.ballPosY = _this.body.position[1];
         Ball.finalBallPosY = CreateGameScene.height - 100;
-        GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) { return _this.touchMove(e); }, _this);
+        if (GameObject.display.hasEventListener(egret.TouchEvent.TOUCH_BEGIN) == false) {
+            GameObject.display.addEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) { return Ball.touchMove(e); }, false);
+        }
         return _this;
     }
     Ball.prototype.setBody = function (x, y, radius) {
@@ -54,12 +56,12 @@ var Ball = (function (_super) {
         }
         this.gameOver();
     };
-    Ball.prototype.touchMove = function (e) {
-        if (e.stageX <= this.shape.x && this.shape.x > 80) {
-            this.body.applyForce([-500, 0], [0, 0]);
+    Ball.touchMove = function (e) {
+        if (e.stageX <= Ball.I.shape.x && Ball.I.shape.x > 80) {
+            Ball.I.body.applyForce([-2000, 0], [0, 0]);
         }
-        else if (e.stageX > this.shape.x && this.shape.x < CreateGameScene.width - 80) {
-            this.body.applyForce([500, 0], [0, 0]);
+        else if (e.stageX > Ball.I.shape.x && Ball.I.shape.x < CreateGameScene.width - 80) {
+            Ball.I.body.applyForce([2000, 0], [0, 0]);
         }
     };
     Ball.prototype.checkRise = function () {
@@ -74,11 +76,16 @@ var Ball = (function (_super) {
     };
     Ball.prototype.gameOver = function () {
         if (CreateGameScene.gameOverFlag == true) {
+            /*        console.log(GameObject.display.hasEventListener(egret.TouchEvent.TOUCH_BEGIN));
+                        GameObject.display.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => Ball.touchMove(e), false);
+                    console.log(GameObject.display.hasEventListener(egret.TouchEvent.TOUCH_BEGIN));*/
             Ball.I = null;
+            //this.destroy();
         }
     };
     Ball.I = null; // singleton instance
     Ball.checkRiseFlag = false;
+    Ball.collisionFlag = false;
     return Ball;
 }(GameObject));
 __reflect(Ball.prototype, "Ball");

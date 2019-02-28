@@ -35,18 +35,9 @@ class Main extends eui.UILayer {
     private addToStage() {
         GameObject.initial( this.stage );
         CreateGameScene.init();
-        //egret.startTick(this.tickLoop, this);
-       
+
     }
 
-/*    tickLoop(timeStamp:number = Main.timeStamp):boolean{
-        GameObject.update();
-        CreateWorld.worldBegin(timeStamp);
-        if(CreateGameScene.gameOverFlag == true){
-            egret.stopTick(this.tickLoop, this);
-        }
-        return false;
-    }*/
 
     static random(min:number, max:number):number {
         return min + Math.random() * (max - min);
@@ -62,6 +53,18 @@ class Main extends eui.UILayer {
         return value;
     }
 
+    static newTextField(x:number, y:number, text:string, size:number, ratio:number, color:number, bold :boolean): egret.TextField {
+        let tf = new egret.TextField();
+        tf.text = text;
+        tf.bold = bold;
+        tf.scaleX = ratio;
+        tf.scaleY = ratio;
+        tf.size = size;
+        tf.textColor = color;
+        tf.x = x;
+        tf.y = y;
+        return tf;
+    }
     
 }
 
@@ -91,16 +94,17 @@ class CreateGameScene{
         
         /* new メソッドを記入*/
         new Background();
-        new CreateWorld();
+        if(CreateWorld.world == null){
+            new CreateWorld();           
+
+        }
         new CeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff);//天井
         const wall : WallBlock = new WallBlock(0, CreateGameScene.height/2, 50, CreateGameScene.height, 0x7f7fff);//左の壁
         const wall2 : WallBlock = new WallBlock(CreateGameScene.width, CreateGameScene.height/2, 50, CreateGameScene.height, 0x7f7fff);//右の壁
         wall2.body.angle = Math.PI;
         new CreateDownCeilingBlock();
         new DeadBlock(CreateGameScene.width/2, CreateGameScene.height, CreateGameScene.width, 20, 0xff0000);
-        if(this.scoreText == null){
-            this.scoreText = new ScoreText(0,0,"Score " + Math.floor(CreateGameScene.score).toString(),100, 0.5,0xFFFFFF,"Meiryo",0x000000, 0);
-        }
+        this.scoreText = new ScoreText(0,0,"Score " + Math.floor(CreateGameScene.score).toString(),100, 0.5,0xFFFFFF,true);
         new Ball();
         new NormalBlock(CreateGameScene.width/2, CreateGameScene.height-10, 100, 30, 0x7fff7f);
         
@@ -157,7 +161,8 @@ abstract class GameObject {
     
     public static objects: GameObject[];
     public static display: egret.DisplayObjectContainer;
-    //public static transit:()=>void;
+    protected deleteFlag : boolean = false;
+    public static transit:()=>void;
 
     constructor() {
         GameObject.objects.push(this);
@@ -173,8 +178,35 @@ abstract class GameObject {
 
     static update(){
         GameObject.objects.forEach(obj => obj.updateContent());
+        GameObject.objects = GameObject.objects.filter( obj =>{
+            if( obj.deleteFlag ) obj.delete();
+            return ( !obj.deleteFlag );
+        } );
+        
+        if( GameObject.transit ) {
+            GameObject.dispose();
+            //GameObject.transit();
+            GameObject.transit = null;
+        }
+    }
 
+        static dispose(){            
+        GameObject.objects = GameObject.objects.filter( obj => {
+            obj.destroy();
+            obj.delete();
+            return false; 
+        });
+    }
 
+    destroy() { this.deleteFlag = true; }
+    onDestroy(){}
+
+    private delete(){
+        this.onDestroy();
+        if( this.shape ){
+            GameObject.display.removeChild(this.shape);
+            this.shape = null;
+        }
     }
 
 }
@@ -195,8 +227,8 @@ class CreateDownCeilingBlock extends GameObject{
     createBlock(){
         this.score += Box.blockdownSpeed;
         if(this.block.life <= 0){
-            let b = new DownCeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);
-            this.block = b;
+            //let b = new DownCeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);
+            this.block = new DownCeilingBlock(CreateGameScene.width/2, 80, CreateGameScene.width, 50, 0x7f7fff, CreateGameScene.downCeilingLife);;
             //this.block.push(b);
             //this.score = 0;
             CreateGameScene.downCeilingLife +=1;
@@ -217,6 +249,10 @@ class CreateWorld extends GameObject{
         this.createWorld();
         //this.createWall();
         //egret.startTick(CreateWorld.worldBegin, this);
+        CreateWorld.world.on("beginContact",  CreateWorld.collision, this);
+        //CreateWorld.world.on("beginContact",  DeadBlock.collision, this);
+        //GameObject.display.stage.addEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => Ball.touchMove(e), this);
+
     }
 
     createWorld(){
@@ -225,53 +261,11 @@ class CreateWorld extends GameObject{
         CreateWorld.world.gravity = [0, 9.8];
 
     }
-    createWall(){
-        //見えない壁や地面の生成
-        /*for(let i = 0; i < 3; i++){
-            const planeBody: p2.Body[] = [];
-            planeBody[i] = new p2.Body({fixedRotation:true ,type:p2.Body.STATIC});
-            const planeShape: p2.Plane[] = [];
-            planeShape[i] = new p2.Plane({collisionGroup: GraphicShape.CEILING, collisionMask:GraphicShape.CIECLE});
-            
-            switch(i){
-                //地面
-                case 0:
-                    planeBody[i].position=  [CreateGameScene.width/2, CreateGameScene.height-100];
-                    planeBody[i].angle = Math.PI;//rad表記
-                    //new NormalBox(planeBody[i].position[0]+180, planeBody[i].position[1], 100, 30);
 
-                break;
-
-                //右の壁
-                case 1:
-                    planeBody[i].position=  [CreateGameScene.width, CreateGameScene.height];
-                    planeBody[i].angle = Math.PI/2;//rad表記
-                    //new NormalBox(planeBody[i].position[0], planeBody[i].position[1], 100, 30);
-                break;
-
-                //左の壁
-                case 2:
-                    planeBody[i].position=  [0, CreateGameScene.height];
-                    planeBody[i].angle = 3* Math.PI/2;//rad表記
-                    //new NormalBox(planeBody[i].position[0], planeBody[i].position[1], 100, 30);
-                break;
-
-            }
-
-            planeBody[i].addShape(planeShape[i]);
-            CreateWorld.world.addBody(planeBody[i]);
-        }*/
-
-
-
-
-
-
-    }
     
     updateContent(){
 
-
+        this.gameOver();
     }
 
 
@@ -281,7 +275,19 @@ class CreateWorld extends GameObject{
         return false;
     }
 
-    
+    gameOver(){
+        if(CreateGameScene.gameOverFlag == true){
+            CreateWorld.world.off("beginContact",  CreateWorld.collision);
+            //CreateWorld.world.off("beginContact",  DeadBlock.collision, this);
+            //GameObject.display.stage.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => Ball.touchMove(e), this);
+        }
+    }
+
+    static collision(evt : any){
+        Box.collision(evt);
+        DeadBlock.collision(evt);
+        DownCeilingBlock.collision(evt);
+    }
 
 }
 

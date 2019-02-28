@@ -18,7 +18,7 @@ class Box extends GameObject{
         this.boxColor = boxColor;
         this.setBody(this.boxPositionX, this.boxPositionY, this.boxWidth, this.boxHeight);
         this.setShape(this.boxWidth, this.boxHeight);
-        CreateWorld.world.on("beginContact",  this.collision, this);
+        //CreateWorld.world.on("beginContact",  this.collision, this);
 
 
     }
@@ -56,7 +56,7 @@ class Box extends GameObject{
 
     updateContent(){
         this.moveBlock();
-        this.gameOver();
+        //this.gameOver();
     }
 
     moveBlock(){
@@ -64,8 +64,8 @@ class Box extends GameObject{
             this.body.position[1] +=   Box.blockdownSpeed;
             this.shape.y +=            Box.blockdownSpeed;
             if(this.shape.y > CreateGameScene.height){
-                this.body.position[1] =   -CreateGameScene.boxInterval;
                 this.shape.y =            -CreateGameScene.boxInterval;
+                this.body.position[1] =   -CreateGameScene.boxInterval;
             }
 
         }
@@ -73,7 +73,7 @@ class Box extends GameObject{
     }
 
 
-    collision(evt) : void {
+    static collision(evt) : void {
 
         const bodyA: p2.Body = evt.bodyA;
         const shapeA  = evt.shapeA;
@@ -88,18 +88,19 @@ class Box extends GameObject{
             //足場よりもボールが上にあるとき
             if(Ball.ballPosY < bodyA.position[1]){
                 Ball.I.body.applyForce([0,-10000],[0,0]);
+                Ball.collisionFlag = false;
 
             }
         }
 
     }
 
-    gameOver(){
+/*    gameOver(){
         if(CreateGameScene.gameOverFlag == true){
             CreateWorld.world.off("beginContact",  this.collision);
 
         }
-    }
+    }*/
 
 
 }
@@ -248,6 +249,7 @@ class CeilingBlock extends Box{
 
 class DownCeilingBlock extends CeilingBlock{
 
+    static downCeilingBlock : DownCeilingBlock =null;
     static blockdownSpeed : number = 0.5;
     public life : number = 1;
     private lifeText : DownCeilingText | null = null;
@@ -255,8 +257,9 @@ class DownCeilingBlock extends CeilingBlock{
 
     constructor(boxPositionX : number, boxPositionY : number, boxWidth : number, boxHeight : number, boxColor:number, life:number){
         super(boxPositionX, boxPositionY , boxWidth, boxHeight, boxColor);
+        DownCeilingBlock.downCeilingBlock = this;
         this.life = life || 1;
-        this.lifeText = new DownCeilingText(boxPositionX,boxPositionY,this.life.toString(),100, 0.5,0xFFFFFF,"Meiryo",0x000000, 0);
+        this.lifeText = new DownCeilingText(boxPositionX,boxPositionY,this.life.toString(),100, 0.5,0xFFFFFF,true);
 
     }
 
@@ -283,13 +286,13 @@ class DownCeilingBlock extends CeilingBlock{
             this.shape.y +=            DownCeilingBlock.blockdownSpeed;
 
             this.lifeText.y = this.shape.y;
-            this.lifeText.text = this.life.toString();
+            this.lifeText.myText = this.life.toString();
 
         }
         
     }
 
-    collision(evt) : void {
+    static collision(evt) : void {
 
         const bodyA: p2.Body = evt.bodyA;
         const shapeA  = evt.shapeA;
@@ -298,15 +301,25 @@ class DownCeilingBlock extends CeilingBlock{
        
 
         if(shapeB.collisionGroup  == GraphicShape.CIECLE && shapeA.collisionGroup  == GraphicShape.DOWN_CEILING){
-            this.life -= 1;
-            if(this.life <= 0){
-                CreateWorld.world.removeBody(this.body);
-                GameObject.display.removeChild(this.shape);
+             if(Ball.collisionFlag == false){
 
-                this.lifeText.deleteFlag = true;
-                this.lifeText.text = null;
+                DownCeilingBlock.downCeilingBlock.life -= 1;
+                console.log("a");
                 
-            }
+                
+                if( DownCeilingBlock.downCeilingBlock.life <= 0){
+
+                    CreateWorld.world.removeBody( DownCeilingBlock.downCeilingBlock.body);
+                    //GameObject.display.removeChild( DownCeilingBlock.downCeilingBlock.shape);
+                    DownCeilingBlock.downCeilingBlock.destroy();
+                    DownCeilingBlock.downCeilingBlock.lifeText.deleteFlag = true;
+                    DownCeilingBlock.downCeilingBlock.lifeText.myText = null;
+                    //DownCeilingBlock.downCeilingBlock = null;
+                    
+                    
+                }
+             }
+            Ball.collisionFlag = true;
         }
 
     }
@@ -314,7 +327,7 @@ class DownCeilingBlock extends CeilingBlock{
     gameOver(){
         if(CreateGameScene.gameOverFlag == true){
             this.lifeText.deleteFlag = true;
-            this.lifeText.text = null;
+            this.lifeText.myText = null;
 
         }
     }
@@ -347,7 +360,7 @@ class DeadBlock extends Box{
         //this.gameOver();
     }
 
-    collision(evt) : void {
+    static collision(evt) : void {
 
         const bodyA: p2.Body = evt.bodyA;
         const shapeA  = evt.shapeA;
@@ -359,12 +372,12 @@ class DeadBlock extends Box{
             //ゲームオーバーの表示
             if(CreateGameScene.gameOverText == null){
                 CreateGameScene.gameOverText = [];
-                CreateGameScene.gameOverText[0] = new GameOverText(CreateGameScene.width/2 ,CreateGameScene.height /2 -50,"GAME OVER",180, 0.5,0xFFFFFF,"Meiryo",0x000000, 2);
-                CreateGameScene.gameOverText[1] = new GameOverText(CreateGameScene.width/2 ,CreateGameScene.height /2 +50,"Score " + Math.floor(CreateGameScene.score).toString(),120, 0.5,0xFFFFFF,"Meiryo",0x000000, 2);
+                CreateGameScene.gameOverText[0] = new GameOverText(CreateGameScene.width/2 ,CreateGameScene.height /2 -50,"GAME OVER",180, 0.5,0xFFFFFF, true);
+                CreateGameScene.gameOverText[1] = new GameOverText(CreateGameScene.width/2 ,CreateGameScene.height /2 +50,"Score " + Math.floor(CreateGameScene.score).toString(),120, 0.5,0xFFFFFF,true);
 
             }
 
-            GameObject.display.stage.once(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => this.retry(e), this);
+            GameObject.display.stage.once(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => DeadBlock.retry(e), this);
     
         }
 
@@ -377,8 +390,13 @@ class DeadBlock extends Box{
         }
     }*/
 
-    retry(e: egret.TouchEvent){
+    static retry(e: egret.TouchEvent){
+        GameObject.display.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, (e: egret.TouchEvent) => Ball.touchMove(e), false);
+        CreateWorld.world.clear();
+        CreateWorld.world = null;
+        GameObject.dispose();
         CreateGameScene.init();
+            //GameObject.transit();
 
     }
 
@@ -447,7 +465,10 @@ class WallBlock extends GameObject{
     }
 
 
+    static collision(evt) : void {
+        
 
+    }
 
 
 

@@ -19,8 +19,8 @@ var Box = (function (_super) {
         _this.boxColor = boxColor;
         _this.setBody(_this.boxPositionX, _this.boxPositionY, _this.boxWidth, _this.boxHeight);
         _this.setShape(_this.boxWidth, _this.boxHeight);
-        CreateWorld.world.on("beginContact", _this.collision, _this);
         return _this;
+        //CreateWorld.world.on("beginContact",  this.collision, this);
     }
     Box.prototype.setBody = function (x, y, width, height) {
         this.body = new p2.Body({ mass: 1, position: [x, y], type: p2.Body.STATIC });
@@ -46,19 +46,19 @@ var Box = (function (_super) {
     };
     Box.prototype.updateContent = function () {
         this.moveBlock();
-        this.gameOver();
+        //this.gameOver();
     };
     Box.prototype.moveBlock = function () {
         if (Box.boxMove == true) {
             this.body.position[1] += Box.blockdownSpeed;
             this.shape.y += Box.blockdownSpeed;
             if (this.shape.y > CreateGameScene.height) {
-                this.body.position[1] = -CreateGameScene.boxInterval;
                 this.shape.y = -CreateGameScene.boxInterval;
+                this.body.position[1] = -CreateGameScene.boxInterval;
             }
         }
     };
-    Box.prototype.collision = function (evt) {
+    Box.collision = function (evt) {
         var bodyA = evt.bodyA;
         var shapeA = evt.shapeA;
         if (Ball.checkRiseFlag == false) {
@@ -68,12 +68,8 @@ var Box = (function (_super) {
             //足場よりもボールが上にあるとき
             if (Ball.ballPosY < bodyA.position[1]) {
                 Ball.I.body.applyForce([0, -10000], [0, 0]);
+                Ball.collisionFlag = false;
             }
-        }
-    };
-    Box.prototype.gameOver = function () {
-        if (CreateGameScene.gameOverFlag == true) {
-            CreateWorld.world.off("beginContact", this.collision);
         }
     };
     Box.boxMove = false;
@@ -204,8 +200,9 @@ var DownCeilingBlock = (function (_super) {
         var _this = _super.call(this, boxPositionX, boxPositionY, boxWidth, boxHeight, boxColor) || this;
         _this.life = 1;
         _this.lifeText = null;
+        DownCeilingBlock.downCeilingBlock = _this;
         _this.life = life || 1;
-        _this.lifeText = new DownCeilingText(boxPositionX, boxPositionY, _this.life.toString(), 100, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 0);
+        _this.lifeText = new DownCeilingText(boxPositionX, boxPositionY, _this.life.toString(), 100, 0.5, 0xFFFFFF, true);
         return _this;
     }
     DownCeilingBlock.prototype.setBody = function (x, y, width, height) {
@@ -225,30 +222,37 @@ var DownCeilingBlock = (function (_super) {
             this.body.position[1] += DownCeilingBlock.blockdownSpeed;
             this.shape.y += DownCeilingBlock.blockdownSpeed;
             this.lifeText.y = this.shape.y;
-            this.lifeText.text = this.life.toString();
+            this.lifeText.myText = this.life.toString();
         }
     };
-    DownCeilingBlock.prototype.collision = function (evt) {
+    DownCeilingBlock.collision = function (evt) {
         var bodyA = evt.bodyA;
         var shapeA = evt.shapeA;
         var bodyB = evt.bodyB;
         var shapeB = evt.shapeB;
         if (shapeB.collisionGroup == GraphicShape.CIECLE && shapeA.collisionGroup == GraphicShape.DOWN_CEILING) {
-            this.life -= 1;
-            if (this.life <= 0) {
-                CreateWorld.world.removeBody(this.body);
-                GameObject.display.removeChild(this.shape);
-                this.lifeText.deleteFlag = true;
-                this.lifeText.text = null;
+            if (Ball.collisionFlag == false) {
+                DownCeilingBlock.downCeilingBlock.life -= 1;
+                console.log("a");
+                if (DownCeilingBlock.downCeilingBlock.life <= 0) {
+                    CreateWorld.world.removeBody(DownCeilingBlock.downCeilingBlock.body);
+                    //GameObject.display.removeChild( DownCeilingBlock.downCeilingBlock.shape);
+                    DownCeilingBlock.downCeilingBlock.destroy();
+                    DownCeilingBlock.downCeilingBlock.lifeText.deleteFlag = true;
+                    DownCeilingBlock.downCeilingBlock.lifeText.myText = null;
+                    //DownCeilingBlock.downCeilingBlock = null;
+                }
             }
+            Ball.collisionFlag = true;
         }
     };
     DownCeilingBlock.prototype.gameOver = function () {
         if (CreateGameScene.gameOverFlag == true) {
             this.lifeText.deleteFlag = true;
-            this.lifeText.text = null;
+            this.lifeText.myText = null;
         }
     };
+    DownCeilingBlock.downCeilingBlock = null;
     DownCeilingBlock.blockdownSpeed = 0.5;
     return DownCeilingBlock;
 }(CeilingBlock));
@@ -269,8 +273,7 @@ var DeadBlock = (function (_super) {
     DeadBlock.prototype.updateContent = function () {
         //this.gameOver();
     };
-    DeadBlock.prototype.collision = function (evt) {
-        var _this = this;
+    DeadBlock.collision = function (evt) {
         var bodyA = evt.bodyA;
         var shapeA = evt.shapeA;
         var bodyB = evt.bodyB;
@@ -280,10 +283,10 @@ var DeadBlock = (function (_super) {
             //ゲームオーバーの表示
             if (CreateGameScene.gameOverText == null) {
                 CreateGameScene.gameOverText = [];
-                CreateGameScene.gameOverText[0] = new GameOverText(CreateGameScene.width / 2, CreateGameScene.height / 2 - 50, "GAME OVER", 180, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 2);
-                CreateGameScene.gameOverText[1] = new GameOverText(CreateGameScene.width / 2, CreateGameScene.height / 2 + 50, "Score " + Math.floor(CreateGameScene.score).toString(), 120, 0.5, 0xFFFFFF, "Meiryo", 0x000000, 2);
+                CreateGameScene.gameOverText[0] = new GameOverText(CreateGameScene.width / 2, CreateGameScene.height / 2 - 50, "GAME OVER", 180, 0.5, 0xFFFFFF, true);
+                CreateGameScene.gameOverText[1] = new GameOverText(CreateGameScene.width / 2, CreateGameScene.height / 2 + 50, "Score " + Math.floor(CreateGameScene.score).toString(), 120, 0.5, 0xFFFFFF, true);
             }
-            GameObject.display.stage.once(egret.TouchEvent.TOUCH_BEGIN, function (e) { return _this.retry(e); }, this);
+            GameObject.display.stage.once(egret.TouchEvent.TOUCH_BEGIN, function (e) { return DeadBlock.retry(e); }, this);
         }
     };
     /*    gameOver(){
@@ -292,8 +295,13 @@ var DeadBlock = (function (_super) {
     
             }
         }*/
-    DeadBlock.prototype.retry = function (e) {
+    DeadBlock.retry = function (e) {
+        GameObject.display.removeEventListener(egret.TouchEvent.TOUCH_BEGIN, function (e) { return Ball.touchMove(e); }, false);
+        CreateWorld.world.clear();
+        CreateWorld.world = null;
+        GameObject.dispose();
         CreateGameScene.init();
+        //GameObject.transit();
     };
     return DeadBlock;
 }(Box));
@@ -334,6 +342,8 @@ var WallBlock = (function (_super) {
         GameObject.display.addChild(this.shape);
     };
     WallBlock.prototype.updateContent = function () {
+    };
+    WallBlock.collision = function (evt) {
     };
     WallBlock.boxMove = false;
     //static moveDistance : number = 0;
