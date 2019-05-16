@@ -6,6 +6,7 @@
 
     //static coin : Coin[] = [];
 
+    static I : CreateGameScene = null;
     static block : Block[] = [];
     private blockWidth : number;
     private blockHeight : number;
@@ -15,11 +16,12 @@
 
     constructor(){
         super();
+        CreateGameScene.I = this;
         //CreateGameScene.createPosY = Game.height;
         CreateGameScene.createBlockPosY  = Game.height*0.7;
-        this.blockWidth = Game.width*0.15;
-        this.blockHeight = Game.width*0.05;
-        this.blockInterval = Game.height*0.2;
+        this.blockWidth = Game.width*0.4;
+        this.blockHeight = Game.width*0.04;
+        this.blockInterval = Game.height*0.4;
 /*        CreateGameScene.rightWall = [];
         CreateGameScene.leftWall = [];*/
         CreateGameScene.block = [];
@@ -35,10 +37,10 @@
         new Wall(Game.width*0.9,    Game.height * 0, Game.width*0.1, Game.height*1.5);
         new Wall(0,                 Game.height * 0, Game.width*0.1, Game.height*1.5);*/
 
-        new Block(Game.width/2,CreateGameScene.createBlockPosY, this.blockWidth,this.blockHeight);
+        new Block(Game.width/2,CreateGameScene.createBlockPosY, Game.width,this.blockHeight);
 
 
-        for(let i = 0; i < 50; i ++){
+        for(let i = 0; i < 20; i ++){
             if(Player.I.compornent.y - CreateGameScene.createBlockPosY < Game.height*1.5){
                 const x :number = Util.randomInt(Game.width*0.12, Game.width*0.86);
                 const y :number = CreateGameScene.createBlockPosY - this.blockInterval;
@@ -77,6 +79,25 @@
         
     }
 
+    public changeBlockParameter(){
+        if((Score.score % 10) == 0){
+            if(this.blockWidth <= Game.width*0.07){//大体50pxくらい
+                this.blockWidth = Game.width*0.07;
+            }
+            else{
+                this.blockWidth -= 20;
+            }
+
+           if(PhysicsObject.maxSubStep >= 45){
+                PhysicsObject.maxSubStep = 45;
+           }
+           else{
+                PhysicsObject.maxSubStep += 1;
+           }
+            
+        }
+    }
+
     static freshArray(){
 /*            const newArray : Wall[] = CreateGameScene.rightWall.filter(obj => obj.destroyFlag !== true);
             CreateGameScene.rightWall = newArray;
@@ -91,5 +112,7 @@
     updateContent(){
         this.createBlock();
     }
+
+    getBlockInterval():number{return this.blockInterval;}
 
 }

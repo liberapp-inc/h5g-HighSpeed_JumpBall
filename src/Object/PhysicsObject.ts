@@ -7,6 +7,7 @@ enum GraphicShape{
 }
 //連続実行したいメソッドはfixedUpdateへ記入
 //destroy時に実行したいメソッドはaddDestroyPhysicsMethodへ記入
+//maxSubStepはGameOverクラスで初期化している
 abstract class PhysicsObject extends GameCompornent {
 
     public body : p2.Body = null;
@@ -21,7 +22,7 @@ abstract class PhysicsObject extends GameCompornent {
     public  static width: number;    
     public  static height: number;
 
-    public  static maxSubStep : number = 20;
+    public  static maxSubStep : number = 30;
 
     constructor(x : number, y : number, width : number, height : number) {
         super(x,y,width,height);

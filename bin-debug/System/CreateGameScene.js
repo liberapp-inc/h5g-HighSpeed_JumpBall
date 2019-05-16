@@ -12,11 +12,12 @@ var CreateGameScene = (function (_super) {
     __extends(CreateGameScene, _super);
     function CreateGameScene() {
         var _this = _super.call(this) || this;
+        CreateGameScene.I = _this;
         //CreateGameScene.createPosY = Game.height;
         CreateGameScene.createBlockPosY = Game.height * 0.7;
-        _this.blockWidth = Game.width * 0.15;
-        _this.blockHeight = Game.width * 0.05;
-        _this.blockInterval = Game.height * 0.2;
+        _this.blockWidth = Game.width * 0.4;
+        _this.blockHeight = Game.width * 0.04;
+        _this.blockInterval = Game.height * 0.4;
         /*        CreateGameScene.rightWall = [];
                 CreateGameScene.leftWall = [];*/
         CreateGameScene.block = [];
@@ -28,8 +29,8 @@ var CreateGameScene = (function (_super) {
                 new Wall(0,                -Game.height * 1, Game.width*0.1, Game.height*0.98);
                 new Wall(Game.width*0.9,    Game.height * 0, Game.width*0.1, Game.height*1.5);
                 new Wall(0,                 Game.height * 0, Game.width*0.1, Game.height*1.5);*/
-        new Block(Game.width / 2, CreateGameScene.createBlockPosY, this.blockWidth, this.blockHeight);
-        for (var i = 0; i < 50; i++) {
+        new Block(Game.width / 2, CreateGameScene.createBlockPosY, Game.width, this.blockHeight);
+        for (var i = 0; i < 20; i++) {
             if (Player.I.compornent.y - CreateGameScene.createBlockPosY < Game.height * 1.5) {
                 var x = Util.randomInt(Game.width * 0.12, Game.width * 0.86);
                 var y = CreateGameScene.createBlockPosY - this.blockInterval;
@@ -58,6 +59,22 @@ var CreateGameScene = (function (_super) {
                     
                 }*/
     };
+    CreateGameScene.prototype.changeBlockParameter = function () {
+        if ((Score.score % 10) == 0) {
+            if (this.blockWidth <= Game.width * 0.07) {
+                this.blockWidth = Game.width * 0.07;
+            }
+            else {
+                this.blockWidth -= 20;
+            }
+            if (PhysicsObject.maxSubStep >= 45) {
+                PhysicsObject.maxSubStep = 45;
+            }
+            else {
+                PhysicsObject.maxSubStep += 1;
+            }
+        }
+    };
     CreateGameScene.freshArray = function () {
         /*            const newArray : Wall[] = CreateGameScene.rightWall.filter(obj => obj.destroyFlag !== true);
                     CreateGameScene.rightWall = newArray;
@@ -70,10 +87,12 @@ var CreateGameScene = (function (_super) {
     CreateGameScene.prototype.updateContent = function () {
         this.createBlock();
     };
+    CreateGameScene.prototype.getBlockInterval = function () { return this.blockInterval; };
     /*    static createPosY : number = 0;
         static rightWall : Wall[] = [];
         static leftWall : Wall[] = [];*/
     //static coin : Coin[] = [];
+    CreateGameScene.I = null;
     CreateGameScene.block = [];
     CreateGameScene.createBlockPosY = 0;
     return CreateGameScene;

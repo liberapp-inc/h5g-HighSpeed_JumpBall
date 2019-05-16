@@ -19,7 +19,7 @@ class UILayer{
         UILayer.I = this;
         this.setContainer();
         UILayer.index = GameObject.display.getChildIndex(UILayer.display) ;
-        UILayer.display.once( egret.TouchEvent.TOUCH_BEGIN, this.deleteDescription, this );
+        //UILayer.display.once( egret.TouchEvent.TOUCH_BEGIN, this.deleteDescription, this );
         UILayer.display.addEventListener( egret.TouchEvent.TOUCH_BEGIN, this.push, this );
         UILayer.display.addEventListener( egret.TouchEvent.TOUCH_MOVE, this.move, this );
         UILayer.display.addEventListener( egret.TouchEvent.TOUCH_END, this.end, this );
@@ -65,6 +65,7 @@ class UILayer{
         //Player.I.jump();
     }
     move(e : egret.TouchEvent){
+        this.deleteDescription();
         UILayer.onTouch = true;
         this.releasePos = e.stageX;
         const nowPlayerPos :number = (this.releasePos - this.pushPos) + this.initialBallPos;
@@ -73,9 +74,9 @@ class UILayer{
 
     end(){
         UILayer.onTouch = false;
-/*        this.pushPos = 0;
+        this.pushPos = 0;
         this.releasePos = 0;
-        this.initialBallPos = 0;*/
+        //this.initialBallPos = 0;
 
     }
 

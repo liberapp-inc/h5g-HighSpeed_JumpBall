@@ -38,6 +38,7 @@ var GameOver = (function (_super) {
     GameOver.prototype.updateContent = function () {
     };
     GameOver.prototype.tap = function (e) {
+        PhysicsObject.maxSubStep = 30;
         UILayer.I.remove();
         GameObject.transit = Game.init;
     };

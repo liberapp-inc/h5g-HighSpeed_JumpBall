@@ -81,6 +81,8 @@ class Player extends PhysicsObject{
                     if(b.body == bodyA || b.body == bodyB){
                     //if(b.body == bodyA && b.body.position[1] > this.body.position[1]){
                         this.jump();
+                        Score.addScore();
+                        CreateGameScene.I.changeBlockParameter();
                         CreateGameScene.freshArray();
                         return;
                     }
@@ -125,7 +127,7 @@ class Player extends PhysicsObject{
 
     jump(){
             this.nowJump = true;
-            const power : number = 8000;
+            const power : number = 12000;
             this.body.applyForce([0, -power],[0,0]);
         if(!this.nowJump){
 

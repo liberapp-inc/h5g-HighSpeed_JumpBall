@@ -76,6 +76,8 @@ var Player = (function (_super) {
                     if (b.body == bodyA || b.body == bodyB) {
                         //if(b.body == bodyA && b.body.position[1] > this.body.position[1]){
                         _this.jump();
+                        Score.addScore();
+                        CreateGameScene.I.changeBlockParameter();
                         CreateGameScene.freshArray();
                         return;
                     }
@@ -110,7 +112,7 @@ var Player = (function (_super) {
         }*/
     Player.prototype.jump = function () {
         this.nowJump = true;
-        var power = 8000;
+        var power = 12000;
         this.body.applyForce([0, -power], [0, 0]);
         if (!this.nowJump) {
         }

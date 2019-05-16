@@ -38,6 +38,7 @@ class GameOver extends UICompornent{
      }
 
     tap(e:egret.TouchEvent){
+        PhysicsObject.maxSubStep = 30;
         UILayer.I.remove();
         GameObject.transit = Game.init;
 

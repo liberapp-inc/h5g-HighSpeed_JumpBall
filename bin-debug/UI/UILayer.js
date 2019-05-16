@@ -14,7 +14,7 @@ var UILayer = (function () {
         UILayer.I = this;
         this.setContainer();
         UILayer.index = GameObject.display.getChildIndex(UILayer.display);
-        UILayer.display.once(egret.TouchEvent.TOUCH_BEGIN, this.deleteDescription, this);
+        //UILayer.display.once( egret.TouchEvent.TOUCH_BEGIN, this.deleteDescription, this );
         UILayer.display.addEventListener(egret.TouchEvent.TOUCH_BEGIN, this.push, this);
         UILayer.display.addEventListener(egret.TouchEvent.TOUCH_MOVE, this.move, this);
         UILayer.display.addEventListener(egret.TouchEvent.TOUCH_END, this.end, this);
@@ -57,6 +57,7 @@ var UILayer = (function () {
         //Player.I.jump();
     };
     UILayer.prototype.move = function (e) {
+        this.deleteDescription();
         UILayer.onTouch = true;
         this.releasePos = e.stageX;
         var nowPlayerPos = (this.releasePos - this.pushPos) + this.initialBallPos;
@@ -64,9 +65,9 @@ var UILayer = (function () {
     };
     UILayer.prototype.end = function () {
         UILayer.onTouch = false;
-        /*        this.pushPos = 0;
-                this.releasePos = 0;
-                this.initialBallPos = 0;*/
+        this.pushPos = 0;
+        this.releasePos = 0;
+        //this.initialBallPos = 0;
     };
     UILayer.prototype.deleteDescription = function () {
         //Player.I.setStart(true);

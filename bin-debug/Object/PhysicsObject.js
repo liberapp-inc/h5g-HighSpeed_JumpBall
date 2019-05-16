@@ -18,6 +18,7 @@ var GraphicShape;
 })(GraphicShape || (GraphicShape = {}));
 //連続実行したいメソッドはfixedUpdateへ記入
 //destroy時に実行したいメソッドはaddDestroyPhysicsMethodへ記入
+//maxSubStepはGameOverクラスで初期化している
 var PhysicsObject = (function (_super) {
     __extends(PhysicsObject, _super);
     function PhysicsObject(x, y, width, height) {
@@ -101,7 +102,7 @@ var PhysicsObject = (function (_super) {
     });
     PhysicsObject.world = null;
     PhysicsObject.deltaScale = 1;
-    PhysicsObject.maxSubStep = 20;
+    PhysicsObject.maxSubStep = 30;
     return PhysicsObject;
 }(GameCompornent));
 __reflect(PhysicsObject.prototype, "PhysicsObject");
