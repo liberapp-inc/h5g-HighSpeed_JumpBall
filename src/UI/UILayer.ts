@@ -82,6 +82,7 @@ class UILayer{
 
     deleteDescription(){
         //Player.I.setStart(true);
+        Description.I.destroy();
         if(!Player.I.getStart()){Player.I.setStart(true);}
     }
 

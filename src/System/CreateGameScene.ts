@@ -13,6 +13,7 @@
     private blockInterval : number;
     static createBlockPosY : number = 0;
     private initialDistance : number;
+    private setInitialBlock : boolean = false;
 
     constructor(){
         super();
@@ -40,7 +41,7 @@
         new Block(Game.width/2,CreateGameScene.createBlockPosY, Game.width,this.blockHeight);
 
 
-        for(let i = 0; i < 20; i ++){
+        for(let i = 0; i < 5; i ++){
             if(Player.I.compornent.y - CreateGameScene.createBlockPosY < Game.height*1.5){
                 const x :number = Util.randomInt(Game.width*0.12, Game.width*0.86);
                 const y :number = CreateGameScene.createBlockPosY - this.blockInterval;
@@ -51,14 +52,15 @@
 
         }
 
-        
+        this.setInitialBlock = true;
 
 
 
     }
 
     private createBlock(){
-        if(!Player.I.getStart()){return;}
+        if(!this.setInitialBlock){return;}
+        //if(!Player.I.getStart()){return;}
         if(Player.I.compornent.y - CreateGameScene.createBlockPosY < Game.height*1.5){
             const interval : number = this.blockInterval;
             const x :number = Util.randomInt(Game.width*0.12, Game.width*0.86);
@@ -80,18 +82,30 @@
     }
 
     public changeBlockParameter(){
+        if(this.blockWidth == Player.I.compornent.width && PhysicsObject.maxSubStep == 40){
+            return;
+        }
         if((Score.score % 10) == 0){
-            if(this.blockWidth <= Game.width*0.07){//大体50pxくらい
-                this.blockWidth = Game.width*0.07;
+            if(this.blockWidth == Player.I.compornent.width){
+
             }
+            else if(this.blockWidth < Player.I.compornent.width){//大体50pxくらい
+                this.blockWidth = Player.I.compornent.width;
+            }
+/*            if(this.blockWidth <= Game.width*0.07){//大体50pxくらい
+                this.blockWidth = Game.width*0.07;
+            }*/
             else{
                 this.blockWidth -= 20;
             }
 
-           if(PhysicsObject.maxSubStep >= 45){
-                PhysicsObject.maxSubStep = 45;
-           }
-           else{
+            if(PhysicsObject.maxSubStep == 40){
+
+            }
+            else if(PhysicsObject.maxSubStep >= 40){
+                PhysicsObject.maxSubStep = 40;
+            }
+            else{
                 PhysicsObject.maxSubStep += 1;
            }
             

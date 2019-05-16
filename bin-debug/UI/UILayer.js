@@ -71,6 +71,7 @@ var UILayer = (function () {
     };
     UILayer.prototype.deleteDescription = function () {
         //Player.I.setStart(true);
+        Description.I.destroy();
         if (!Player.I.getStart()) {
             Player.I.setStart(true);
         }

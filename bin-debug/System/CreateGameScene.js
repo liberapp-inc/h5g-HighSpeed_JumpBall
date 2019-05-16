@@ -12,6 +12,7 @@ var CreateGameScene = (function (_super) {
     __extends(CreateGameScene, _super);
     function CreateGameScene() {
         var _this = _super.call(this) || this;
+        _this.setInitialBlock = false;
         CreateGameScene.I = _this;
         //CreateGameScene.createPosY = Game.height;
         CreateGameScene.createBlockPosY = Game.height * 0.7;
@@ -30,7 +31,7 @@ var CreateGameScene = (function (_super) {
                 new Wall(Game.width*0.9,    Game.height * 0, Game.width*0.1, Game.height*1.5);
                 new Wall(0,                 Game.height * 0, Game.width*0.1, Game.height*1.5);*/
         new Block(Game.width / 2, CreateGameScene.createBlockPosY, Game.width, this.blockHeight);
-        for (var i = 0; i < 20; i++) {
+        for (var i = 0; i < 5; i++) {
             if (Player.I.compornent.y - CreateGameScene.createBlockPosY < Game.height * 1.5) {
                 var x = Util.randomInt(Game.width * 0.12, Game.width * 0.86);
                 var y = CreateGameScene.createBlockPosY - this.blockInterval;
@@ -38,11 +39,13 @@ var CreateGameScene = (function (_super) {
                 new Block(x, y, this.blockWidth, this.blockHeight);
             }
         }
+        this.setInitialBlock = true;
     };
     CreateGameScene.prototype.createBlock = function () {
-        if (!Player.I.getStart()) {
+        if (!this.setInitialBlock) {
             return;
         }
+        //if(!Player.I.getStart()){return;}
         if (Player.I.compornent.y - CreateGameScene.createBlockPosY < Game.height * 1.5) {
             var interval = this.blockInterval;
             var x = Util.randomInt(Game.width * 0.12, Game.width * 0.86);
@@ -60,15 +63,22 @@ var CreateGameScene = (function (_super) {
                 }*/
     };
     CreateGameScene.prototype.changeBlockParameter = function () {
+        if (this.blockWidth == Player.I.compornent.width && PhysicsObject.maxSubStep == 40) {
+            return;
+        }
         if ((Score.score % 10) == 0) {
-            if (this.blockWidth <= Game.width * 0.07) {
-                this.blockWidth = Game.width * 0.07;
+            if (this.blockWidth == Player.I.compornent.width) {
+            }
+            else if (this.blockWidth < Player.I.compornent.width) {
+                this.blockWidth = Player.I.compornent.width;
             }
             else {
                 this.blockWidth -= 20;
             }
-            if (PhysicsObject.maxSubStep >= 45) {
-                PhysicsObject.maxSubStep = 45;
+            if (PhysicsObject.maxSubStep == 40) {
+            }
+            else if (PhysicsObject.maxSubStep >= 40) {
+                PhysicsObject.maxSubStep = 40;
             }
             else {
                 PhysicsObject.maxSubStep += 1;

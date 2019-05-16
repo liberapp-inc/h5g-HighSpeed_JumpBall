@@ -31,6 +31,7 @@
 		"bin-debug/System/Util.js",
 		"bin-debug/UI/Button.js",
 		"bin-debug/UI/CheckDate.js",
+		"bin-debug/UI/Description.js",
 		"bin-debug/UI/GameStage.js",
 		"bin-debug/UI/Score.js",
 		"bin-debug/UI/UILayer.js"

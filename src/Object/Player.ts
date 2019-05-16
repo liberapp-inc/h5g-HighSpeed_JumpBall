@@ -40,7 +40,7 @@ class Player extends PhysicsObject{
             fixedRotation:true,
             sensor:true,
             collisionGroup: GraphicShape.CIECLE, 
-            collisionMask:GraphicShape.WALL | GraphicShape.BLOCK
+            collisionMask: GraphicShape.BLOCK,
         });
         this.body.addShape(this.bodyShape);
         PhysicsObject.world.addBody(this.body);
@@ -111,7 +111,7 @@ class Player extends PhysicsObject{
     }
 
     checkGameOver(){
-        if(this.maxBallPosY - this.compornent.y < -Game.height*0.44 && GameOver.gameOverFlag == false){
+        if(this.maxBallPosY - this.compornent.y < -Game.height*0.54 && GameOver.gameOverFlag == false){
             new GameOver(0,0,0,0);
         }
     }
