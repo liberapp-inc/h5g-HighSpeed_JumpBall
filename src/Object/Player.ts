@@ -45,7 +45,7 @@ class Player extends PhysicsObject{
         this.body.addShape(this.bodyShape);
         PhysicsObject.world.addBody(this.body);
     }
-
+    
 
     private setLine(x : number, y : number, length : number, degree : number, lineWidth:number, color:number ){
         const shape : egret.Shape = Util.setLine(x,y,length,degree,lineWidth,color);

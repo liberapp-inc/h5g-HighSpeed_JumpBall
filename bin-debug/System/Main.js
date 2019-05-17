@@ -10,10 +10,13 @@ r.prototype = e.prototype, t.prototype = new r();
 };
 var ColorPallet;
 (function (ColorPallet) {
-    //自然
+    /*    WHITE = 0xffffff,
+        BLUE = 0x80bd9e,
+        RED = 0xf16b6f,*/
     ColorPallet[ColorPallet["WHITE"] = 16777215] = "WHITE";
-    ColorPallet[ColorPallet["BLUE"] = 8437150] = "BLUE";
-    ColorPallet[ColorPallet["RED"] = 15821679] = "RED";
+    ColorPallet[ColorPallet["BLUE"] = 7581251] = "BLUE";
+    ColorPallet[ColorPallet["RED"] = 14960194] = "RED";
+    ColorPallet[ColorPallet["ORANGE"] = 14649137] = "ORANGE";
 })(ColorPallet || (ColorPallet = {}));
 //const BALL_SIZE_METER = 0.6;
 var PIXEL_PER_METER = 1;
@@ -58,8 +61,8 @@ var Game = (function () {
         //new Ground(0,Game.height-200,Game.width,0,4,ColorPallet.RED);
         new Player(Game.width / 2, Game.height * 0.5, Game.width * 0.1);
         //new Player(Game.width/2,Game.height-250,Game.width*0.1);
-        new Score(0, 0, 0, 0, ColorPallet.RED);
-        new Description(0, 0, 0, 0, ColorPallet.RED);
+        new Score(0, 0, 0, 0, ColorPallet.ORANGE);
+        new Description(0, 0, 0, 0, ColorPallet.ORANGE);
         //new TimeLimit(Game.width/2,0,0,0, ColorPallet.RED);
         new CreateGameScene();
     };
