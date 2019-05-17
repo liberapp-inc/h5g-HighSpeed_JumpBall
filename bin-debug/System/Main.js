@@ -49,7 +49,7 @@ var Game = (function () {
         this.width = egret.MainContext.instance.stage.stageWidth;
         GameOver.gameOverFlag = false;
         PhysicsObject.world.gravity = [0, 0];
-        PhysicsObject.maxSubStep = 30;
+        PhysicsObject.maxSubStep = 35;
         /* new メソッドを記入*/
         new Background();
         new GameStage();

@@ -8,7 +8,7 @@
     static createBlockPosY : number = 0;
     private initialDistance : number;
     private setInitialBlock : boolean = false;
-    private limitMaxSubStep : number = 40;
+    private limitMaxSubStep : number = 45;
 
     constructor(){
         super();

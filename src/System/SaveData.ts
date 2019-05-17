@@ -3,7 +3,7 @@
 class SaveData{
 
     static object : any = null;
-    static gameName : string = "Jump_Ball";
+    static gameName : string = "High_Speed_Jump_Ball";
     static playerID: string = null;
     static gameID: string = null;
 

@@ -13,8 +13,7 @@ var GraphicShape;
 (function (GraphicShape) {
     GraphicShape[GraphicShape["NONE"] = Math.pow(2, 0)] = "NONE";
     GraphicShape[GraphicShape["CIECLE"] = Math.pow(2, 1)] = "CIECLE";
-    GraphicShape[GraphicShape["WALL"] = Math.pow(2, 2)] = "WALL";
-    GraphicShape[GraphicShape["BLOCK"] = Math.pow(2, 3)] = "BLOCK";
+    GraphicShape[GraphicShape["BLOCK"] = Math.pow(2, 2)] = "BLOCK";
 })(GraphicShape || (GraphicShape = {}));
 //連続実行したいメソッドはfixedUpdateへ記入
 //destroy時に実行したいメソッドはaddDestroyPhysicsMethodへ記入
@@ -96,7 +95,7 @@ var PhysicsObject = (function (_super) {
     });
     PhysicsObject.world = null;
     PhysicsObject.deltaScale = 1;
-    PhysicsObject.maxSubStep = 30;
+    PhysicsObject.maxSubStep = 35;
     return PhysicsObject;
 }(GameCompornent));
 __reflect(PhysicsObject.prototype, "PhysicsObject");

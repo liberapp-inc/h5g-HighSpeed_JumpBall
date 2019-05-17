@@ -13,7 +13,7 @@ var CreateGameScene = (function (_super) {
     function CreateGameScene() {
         var _this = _super.call(this) || this;
         _this.setInitialBlock = false;
-        _this.limitMaxSubStep = 40;
+        _this.limitMaxSubStep = 45;
         CreateGameScene.I = _this;
         CreateGameScene.createBlockPosY = Game.height * 0.7;
         _this.blockWidth = Game.width * 0.4;

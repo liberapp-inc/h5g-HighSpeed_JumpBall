@@ -22,7 +22,7 @@ var Description = (function (_super) {
         return _this;
     }
     Description.prototype.setText = function () {
-        this.text = Util.myText(Game.width / 2, Game.height / 2.22, "ドラッグでスタート\n\n\n← ← ←         　  → → →", 80, 0.5, this.textColor, true);
+        this.text = Util.myText(Game.width / 2, Game.height / 2.22, "スワイプでスタート\n\n\n← ← ←         　  → → →", 80, 0.5, this.textColor, true);
         this.text.anchorOffsetX = this.text.width / 2;
         this.text.anchorOffsetY = this.text.height / 2;
         this.text.textAlign = egret.HorizontalAlign.CENTER;

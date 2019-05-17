@@ -22,10 +22,10 @@ class Score extends UICompornent{
     }
 
     setText(){
-        this.text = Util.myText(0, 0, "SCORE : 0", 100, 0.5, this.textColor, true);
+        this.text = Util.myText(0, 0, "SCORE : 0", 80, 0.5, this.textColor, true);
         this.compornent.addChild( this.text );
 
-        this.textBest = Util.myText(0, 50, "BEST : " + Score.bestScore.toString(), 100, 0.5, this.textColor, true);
+        this.textBest = Util.myText(0, 50, "BEST : " + Score.bestScore.toString(), 80, 0.5, this.textColor, true);
         Score.bestScore = SaveData.object.bestScore;
         this.textBest.text = "BEST : " + Score.bestScore.toString();
         this.compornent.addChild( this.textBest );

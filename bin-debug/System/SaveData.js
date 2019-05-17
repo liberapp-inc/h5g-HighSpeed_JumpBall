@@ -85,7 +85,7 @@ var SaveData = (function () {
         console.log(SaveData.object);
     };
     SaveData.object = null;
-    SaveData.gameName = "Jump_Ball";
+    SaveData.gameName = "High_Speed_Jump_Ball";
     SaveData.playerID = null;
     SaveData.gameID = null;
     return SaveData;

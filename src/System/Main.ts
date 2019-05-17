@@ -44,7 +44,7 @@ class Game{
 
         GameOver.gameOverFlag = false;
         PhysicsObject.world.gravity = [0, 0];
-        PhysicsObject.maxSubStep = 30;
+        PhysicsObject.maxSubStep = 35;
 
         /* new メソッドを記入*/
         new Background();

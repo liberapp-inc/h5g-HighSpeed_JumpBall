@@ -2,12 +2,11 @@
 enum GraphicShape{
     NONE = Math.pow(2,0),
     CIECLE = Math.pow(2,1),
-    WALL = Math.pow(2,2),
-    BLOCK = Math.pow(2,3)
+    BLOCK = Math.pow(2,2)
 }
 //連続実行したいメソッドはfixedUpdateへ記入
 //destroy時に実行したいメソッドはaddDestroyPhysicsMethodへ記入
-//maxSubStepはGameOverクラスで初期化している
+//maxSubStepはGameクラスで初期化している
 abstract class PhysicsObject extends GameCompornent {
 
     public body : p2.Body = null;
@@ -22,7 +21,7 @@ abstract class PhysicsObject extends GameCompornent {
     public  static width: number;    
     public  static height: number;
 
-    public  static maxSubStep : number = 30;
+    public  static maxSubStep : number = 35;
 
     constructor(x : number, y : number, width : number, height : number) {
         super(x,y,width,height);
