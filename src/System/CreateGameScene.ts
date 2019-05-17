@@ -1,11 +1,5 @@
  class CreateGameScene extends GameObject{
     
-/*    static createPosY : number = 0;
-    static rightWall : Wall[] = [];
-    static leftWall : Wall[] = [];*/
-
-    //static coin : Coin[] = [];
-
     static I : CreateGameScene = null;
     static block : Block[] = [];
     private blockWidth : number;
@@ -46,8 +40,6 @@
 
         this.setInitialBlock = true;
 
-
-
     }
 
     private createBlock(){
@@ -58,7 +50,6 @@
             const y :number = CreateGameScene.createBlockPosY - interval;
             CreateGameScene.createBlockPosY -= interval;
             new Block(x, y, this.blockWidth,this.blockHeight);
-            
             
         }
         
@@ -92,13 +83,7 @@
         }
     }
 
-    static freshArray(){
-/*            const newArray : Wall[] = CreateGameScene.rightWall.filter(obj => obj.destroyFlag !== true);
-            CreateGameScene.rightWall = newArray;
-
-            const newArray2 : Wall[] = CreateGameScene.leftWall.filter(obj => obj.destroyFlag !== true);
-            CreateGameScene.leftWall = newArray2;*/
-            
+    static freshArray(){            
             const newArray3 : Block[] = CreateGameScene.block.filter(obj => obj.destroyFlag !== true);
             CreateGameScene.block = newArray3;
     }

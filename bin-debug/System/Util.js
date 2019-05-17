@@ -168,8 +168,6 @@ var Util = (function () {
         }
         removeObject = null;
     };
-    //-----------------------------
-    //ベクトル系は間違っている可能性あり
     Util.vector = function (size, degree, startPointX, startPointY) {
         var rad = (360 - degree) * Math.PI / 180; //Egretの角度は時計回りが正
         var v = [];

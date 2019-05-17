@@ -16,16 +16,7 @@
       "name": "assetsmanager"
     },
     {
-      "name": "tween"
-    },
-    {
       "name": "game"
-    },
-    {
-      "name": "dragonBones"
-    },
-    {
-      "name": "socket"
     },
     {
       "name": "promise"

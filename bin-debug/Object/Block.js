@@ -39,10 +39,6 @@ var Block = (function (_super) {
         this.compornent.anchorOffsetY += height / 2;
     };
     Block.prototype.fixedUpdate = function () {
-        /*        if(this.compornent.y > Player.I.compornent.y + Game.height){
-                    this.destroy();
-                   
-                }*/
         if (this.compornent.y > Player.I.compornent.y + Game.height * 0.44) {
             this.destroy();
         }

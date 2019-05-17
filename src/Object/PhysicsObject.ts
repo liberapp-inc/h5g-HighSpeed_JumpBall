@@ -51,9 +51,6 @@ abstract class PhysicsObject extends GameCompornent {
                 this.destroy();
                 return;
             }
-            if(this.body){
-                //this.updateDrowShape();
-            }
 
         }
         this.fixedUpdate();
@@ -79,7 +76,6 @@ abstract class PhysicsObject extends GameCompornent {
 
     static step(dt : number) : boolean{
         if(GameOver.gameOverFlag){return true;}
-        //if(!Player.I.getStart()){return;}
         PhysicsObject.world.step(1/60, dt/1000, PhysicsObject.maxSubStep);
         return false;
     }

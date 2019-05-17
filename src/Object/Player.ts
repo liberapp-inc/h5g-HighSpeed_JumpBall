@@ -13,8 +13,7 @@ class Player extends PhysicsObject{
     constructor(x:number, y:number,diameter:number) {
         super(x,y,diameter,diameter);
         Player.I = this;
-        this.ballPosY = y;//オススメ0.6
-        //this.ballPosY = Game.height* 0.60;//オススメ0.6
+        this.ballPosY = y;//オススメ0.6くらい
         this.maxBallPosY = this.ballPosY;
         this.setBody(x, y, diameter/2);
         this.setShape(0,0,diameter/2,ColorPallet.RED);
@@ -63,7 +62,6 @@ class Player extends PhysicsObject{
         }
         else{
             this.nowJump = false;
-            //this.bodyShape.sensor = false;
             return;
         }
     }
@@ -79,7 +77,6 @@ class Player extends PhysicsObject{
                 CreateGameScene.block.forEach(b =>{
                     
                     if(b.body == bodyA || b.body == bodyB){
-                    //if(b.body == bodyA && b.body.position[1] > this.body.position[1]){
                         this.jump();
                         Score.addScore();
                         CreateGameScene.I.changeBlockWidth();
@@ -96,12 +93,9 @@ class Player extends PhysicsObject{
  
     }
 
-     fixedUpdate(){
-        //console.log(this.body.position[0]+ "y:"+ this.body.position[1]);
-         
+     fixedUpdate(){        
         this.updateDrowShape();
         this.checkJump();
-        //this.checkTouchWall();
         if(this.maxBallPosY > this.compornent.y){
             this.maxBallPosY = this.compornent.y;
             Camera2D.y = this.ballPosY - this.compornent.y;
@@ -116,15 +110,6 @@ class Player extends PhysicsObject{
             new GameOver(0,0,0,0);
         }
     }
-
-/*    shot(){
-        const magnification :number = 20;
-        const directionX =  UILayer.I.getDirection()[0] * magnification;
-        const directionY =  UILayer.I.getDirection()[1] * magnification;
-         
-        this.nowJump = true;
-        this.body.applyForce([directionX, directionY],[0,0]);
-    }*/
 
     jump(){
             this.nowJump = true;

@@ -6,7 +6,6 @@ var CheckDate = (function () {
     }
     CheckDate.init = function () {
         CheckDate.getDate();
-        //CheckDate.save();
     };
     CheckDate.getDate = function () {
         //登録日の取得

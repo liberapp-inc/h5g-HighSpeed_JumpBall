@@ -6,7 +6,6 @@ class CheckDate {
 
     static init(){
         CheckDate.getDate();
-        //CheckDate.save();
 
     }
 

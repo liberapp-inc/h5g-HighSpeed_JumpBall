@@ -35,8 +35,7 @@ var GameOver = (function (_super) {
         this.textGameOver = null;
         this.textScore = null;
     };
-    GameOver.prototype.updateContent = function () {
-    };
+    GameOver.prototype.updateContent = function () { };
     GameOver.prototype.tap = function (e) {
         UILayer.I.remove();
         GameObject.transit = Game.init;

@@ -33,9 +33,7 @@ class GameOver extends UICompornent{
         this.textScore = null;
     }
     
-    updateContent() {
-
-     }
+    updateContent() {}
 
     tap(e:egret.TouchEvent){
         UILayer.I.remove();

@@ -74,11 +74,6 @@ var CreateGameScene = (function (_super) {
         }
     };
     CreateGameScene.freshArray = function () {
-        /*            const newArray : Wall[] = CreateGameScene.rightWall.filter(obj => obj.destroyFlag !== true);
-                    CreateGameScene.rightWall = newArray;
-        
-                    const newArray2 : Wall[] = CreateGameScene.leftWall.filter(obj => obj.destroyFlag !== true);
-                    CreateGameScene.leftWall = newArray2;*/
         var newArray3 = CreateGameScene.block.filter(function (obj) { return obj.destroyFlag !== true; });
         CreateGameScene.block = newArray3;
     };
@@ -86,10 +81,6 @@ var CreateGameScene = (function (_super) {
         this.createBlock();
     };
     CreateGameScene.prototype.getBlockInterval = function () { return this.blockInterval; };
-    /*    static createPosY : number = 0;
-        static rightWall : Wall[] = [];
-        static leftWall : Wall[] = [];*/
-    //static coin : Coin[] = [];
     CreateGameScene.I = null;
     CreateGameScene.block = [];
     CreateGameScene.createBlockPosY = 0;

@@ -202,9 +202,6 @@ class Util{
     }
 
 
-    //-----------------------------
-    //ベクトル系は間違っている可能性あり
-
     static vector(size : number, degree : number, startPointX?:number, startPointY?:number) : number[]{
         let rad : number = (360 - degree) * Math.PI/180;//Egretの角度は時計回りが正
         let v : number[] = [];

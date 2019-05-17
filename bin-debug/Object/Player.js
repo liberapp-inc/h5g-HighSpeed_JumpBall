@@ -18,8 +18,7 @@ var Player = (function (_super) {
         _this.nowJump = false;
         _this.touchLeftWall = true;
         Player.I = _this;
-        _this.ballPosY = y; //オススメ0.6
-        //this.ballPosY = Game.height* 0.60;//オススメ0.6
+        _this.ballPosY = y; //オススメ0.6くらい
         _this.maxBallPosY = _this.ballPosY;
         _this.setBody(x, y, diameter / 2);
         _this.setShape(0, 0, diameter / 2, ColorPallet.RED);
@@ -60,7 +59,6 @@ var Player = (function (_super) {
         }
         else {
             this.nowJump = false;
-            //this.bodyShape.sensor = false;
             return;
         }
     };
@@ -74,7 +72,6 @@ var Player = (function (_super) {
             if (shapeA.collisionGroup == GraphicShape.BLOCK || shapeB.collisionGroup == GraphicShape.BLOCK) {
                 CreateGameScene.block.forEach(function (b) {
                     if (b.body == bodyA || b.body == bodyB) {
-                        //if(b.body == bodyA && b.body.position[1] > this.body.position[1]){
                         _this.jump();
                         Score.addScore();
                         CreateGameScene.I.changeBlockWidth();
@@ -87,10 +84,8 @@ var Player = (function (_super) {
         }
     };
     Player.prototype.fixedUpdate = function () {
-        //console.log(this.body.position[0]+ "y:"+ this.body.position[1]);
         this.updateDrowShape();
         this.checkJump();
-        //this.checkTouchWall();
         if (this.maxBallPosY > this.compornent.y) {
             this.maxBallPosY = this.compornent.y;
             Camera2D.y = this.ballPosY - this.compornent.y;
@@ -103,14 +98,6 @@ var Player = (function (_super) {
             new GameOver(0, 0, 0, 0);
         }
     };
-    /*    shot(){
-            const magnification :number = 20;
-            const directionX =  UILayer.I.getDirection()[0] * magnification;
-            const directionY =  UILayer.I.getDirection()[1] * magnification;
-             
-            this.nowJump = true;
-            this.body.applyForce([directionX, directionY],[0,0]);
-        }*/
     Player.prototype.jump = function () {
         this.nowJump = true;
         var power = 12000;
