@@ -66,9 +66,7 @@ var PhysicsObject = (function (_super) {
         if (GameOver.gameOverFlag) {
             return true;
         }
-        if (!Player.I.getStart()) {
-            return;
-        }
+        //if(!Player.I.getStart()){return;}
         PhysicsObject.world.step(1 / 60, dt / 1000, PhysicsObject.maxSubStep);
         return false;
     };

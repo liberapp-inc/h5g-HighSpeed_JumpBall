@@ -77,7 +77,8 @@ var Player = (function (_super) {
                         //if(b.body == bodyA && b.body.position[1] > this.body.position[1]){
                         _this.jump();
                         Score.addScore();
-                        CreateGameScene.I.changeBlockParameter();
+                        CreateGameScene.I.changeBlockWidth();
+                        CreateGameScene.I.changeMaxSubStep();
                         CreateGameScene.freshArray();
                         return;
                     }

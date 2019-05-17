@@ -65,7 +65,9 @@ class UILayer{
         //Player.I.jump();
     }
     move(e : egret.TouchEvent){
-        this.deleteDescription();
+        if(!Player.I.getStart()){
+            this.deleteDescription();
+        }
         UILayer.onTouch = true;
         this.releasePos = e.stageX;
         const nowPlayerPos :number = (this.releasePos - this.pushPos) + this.initialBallPos;
@@ -83,7 +85,8 @@ class UILayer{
     deleteDescription(){
         //Player.I.setStart(true);
         Description.I.destroy();
-        if(!Player.I.getStart()){Player.I.setStart(true);}
+        PhysicsObject.world.gravity = [0, 9.8];
+        Player.I.setStart(true);
     }
 
     remove(){

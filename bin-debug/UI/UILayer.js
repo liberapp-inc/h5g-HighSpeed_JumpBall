@@ -57,7 +57,9 @@ var UILayer = (function () {
         //Player.I.jump();
     };
     UILayer.prototype.move = function (e) {
-        this.deleteDescription();
+        if (!Player.I.getStart()) {
+            this.deleteDescription();
+        }
         UILayer.onTouch = true;
         this.releasePos = e.stageX;
         var nowPlayerPos = (this.releasePos - this.pushPos) + this.initialBallPos;
@@ -72,9 +74,8 @@ var UILayer = (function () {
     UILayer.prototype.deleteDescription = function () {
         //Player.I.setStart(true);
         Description.I.destroy();
-        if (!Player.I.getStart()) {
-            Player.I.setStart(true);
-        }
+        PhysicsObject.world.gravity = [0, 9.8];
+        Player.I.setStart(true);
     };
     UILayer.prototype.remove = function () {
         if (UILayer.display) {
